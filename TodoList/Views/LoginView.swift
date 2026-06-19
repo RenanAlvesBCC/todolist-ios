@@ -10,6 +10,7 @@ import SwiftUI
 struct LoginView: View {
     let viewModel: AuthViewModel
 
+    @Environment(\.appTheme) private var theme
     @State private var username = ""
     @State private var password = ""
     @State private var isRegisterMode = false
@@ -20,21 +21,21 @@ struct LoginView: View {
 
             VStack(spacing: 12) {
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.appText)
+                    .fill(theme.text)
                     .frame(width: 64, height: 64)
                     .overlay {
                         Image(systemName: "checklist")
                             .font(.system(size: 28, weight: .medium))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(theme.background)
                     }
 
                 Text("To-do list")
-                    .font(.title2)
-                    .fontWeight(.semibold)
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundStyle(theme.text)
 
                 Text(isRegisterMode ? "Crie sua conta" : "Entre na sua conta")
                     .font(.subheadline)
-                    .foregroundStyle(Color.appTextSecondary)
+                    .foregroundStyle(theme.textSecondary)
             }
 
             VStack(spacing: 12) {
@@ -42,12 +43,14 @@ struct LoginView: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .padding(14)
-                    .background(Color.appCardBackground)
+                    .background(theme.card)
+                    .foregroundStyle(theme.text)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
 
                 SecureField("Senha", text: $password)
                     .padding(14)
-                    .background(Color.appCardBackground)
+                    .background(theme.card)
+                    .foregroundStyle(theme.text)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
 
@@ -64,7 +67,7 @@ struct LoginView: View {
                 ZStack {
                     if viewModel.isLoading {
                         ProgressView()
-                            .tint(.white)
+                            .tint(theme.background)
                     } else {
                         Text(isRegisterMode ? "Criar conta" : "Entrar")
                             .fontWeight(.medium)
@@ -73,8 +76,8 @@ struct LoginView: View {
                 .frame(maxWidth: .infinity)
                 .padding(14)
             }
-            .background(Color.appText)
-            .foregroundStyle(.white)
+            .background(theme.text)
+            .foregroundStyle(theme.background)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .disabled(viewModel.isLoading)
 
@@ -84,13 +87,15 @@ struct LoginView: View {
             } label: {
                 Text(isRegisterMode ? "Já tem conta? Entrar" : "Não tem conta? Criar conta")
                     .font(.footnote)
-                    .foregroundStyle(Color.appTextSecondary)
+                    .foregroundStyle(theme.textSecondary)
             }
 
             Spacer()
             Spacer()
         }
         .padding(.horizontal, 32)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(theme.background)
     }
 
     private func submit() async {
@@ -104,4 +109,5 @@ struct LoginView: View {
 
 #Preview {
     LoginView(viewModel: AuthViewModel())
+        .environment(\.appTheme, .branco)
 }

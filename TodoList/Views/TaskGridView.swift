@@ -12,11 +12,13 @@ private struct TaskListCard: View {
     let onTap: () -> Void
     let onDelete: () -> Void
 
+    @Environment(\.appTheme) private var theme
+
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             Text(list.title)
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(Color.appText)
+                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .foregroundStyle(theme.text)
                 .lineLimit(1)
 
             VStack(alignment: .leading, spacing: 5) {
@@ -24,10 +26,10 @@ private struct TaskListCard: View {
                     HStack(spacing: 6) {
                         Image(systemName: item.completed ? "checkmark.square.fill" : "square")
                             .font(.system(size: 11))
-                            .foregroundStyle(Color.appTextSecondary)
-                        Text(item.text)
+                            .foregroundStyle(theme.textSecondary)
+                        Text.markdown(item.text)
                             .font(.system(size: 11))
-                            .foregroundStyle(item.completed ? Color.appTextSecondary : Color.appText)
+                            .foregroundStyle(item.completed ? theme.textSecondary : theme.text)
                             .strikethrough(item.completed)
                             .lineLimit(1)
                     }
@@ -36,15 +38,15 @@ private struct TaskListCard: View {
         }
         .padding(10)
         .frame(maxWidth: .infinity, minHeight: 96, alignment: .topLeading)
-        .background(Color.appCardBackground)
+        .background(theme.card)
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .overlay(alignment: .topTrailing) {
             Button(action: onDelete) {
                 Image(systemName: "xmark")
                     .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(Color.appTextSecondary)
+                    .foregroundStyle(theme.textSecondary)
                     .frame(width: 18, height: 18)
-                    .background(Color.appTextSecondary.opacity(0.18))
+                    .background(theme.textSecondary.opacity(0.18))
                     .clipShape(Circle())
             }
             .padding(6)
@@ -62,8 +64,10 @@ struct TaskGridView: View {
     let authViewModel: AuthViewModel
     let taskViewModel: TaskViewModel
 
+    @Environment(\.appTheme) private var theme
     @State private var isShowingAddList = false
     @State private var isShowingMenu = false
+    @State private var isShowingSettings = false
     @State private var newListTitle = ""
     @State private var selectedList: TaskList?
 
@@ -89,10 +93,10 @@ struct TaskGridView: View {
                     VStack(spacing: 8) {
                         Image(systemName: "checklist")
                             .font(.system(size: 32))
-                            .foregroundStyle(Color.appTextSecondary)
+                            .foregroundStyle(theme.textSecondary)
                         Text("Nenhuma lista ainda")
                             .font(.subheadline)
-                            .foregroundStyle(Color.appTextSecondary)
+                            .foregroundStyle(theme.textSecondary)
                     }
                     Spacer()
                 } else {
@@ -115,13 +119,15 @@ struct TaskGridView: View {
                 } label: {
                     Image(systemName: "plus")
                         .font(.system(size: 20, weight: .medium))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(theme.background)
                         .frame(width: 44, height: 44)
-                        .background(Color.appText)
+                        .background(theme.text)
                         .clipShape(Circle())
                 }
                 .padding(.bottom, 14)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(theme.background)
             .navigationTitle("To-do list")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -130,18 +136,25 @@ struct TaskGridView: View {
                         isShowingMenu = true
                     } label: {
                         Image(systemName: "line.3.horizontal")
-                            .foregroundStyle(Color.appTextSecondary)
+                            .foregroundStyle(theme.textSecondary)
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Image(systemName: "gearshape")
-                        .foregroundStyle(Color.appTextSecondary.opacity(0.4))
+                    Button {
+                        isShowingSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .foregroundStyle(theme.textSecondary)
+                    }
                 }
             }
             .confirmationDialog("Menu", isPresented: $isShowingMenu, titleVisibility: .hidden) {
                 Button("Sair", role: .destructive) {
                     authViewModel.logout()
                 }
+            }
+            .sheet(isPresented: $isShowingSettings) {
+                SettingsView()
             }
             .alert("Nova lista", isPresented: $isShowingAddList) {
                 TextField("Título", text: $newListTitle)

@@ -11,9 +11,17 @@ struct TaskDetailView: View {
     let taskViewModel: TaskViewModel
     let list: TaskList
 
-    @Environment(\.dismiss) private var dismiss
+    @Environment(\.appTheme) private var theme
     @State private var title: String
     @State private var newItemText = ""
+    @State private var editingItemID: Int?
+    @State private var editingText = ""
+    @FocusState private var focusedField: Field?
+
+    private enum Field: Hashable {
+        case newItem
+        case editingItem
+    }
 
     init(taskViewModel: TaskViewModel, list: TaskList) {
         self.taskViewModel = taskViewModel
@@ -28,7 +36,8 @@ struct TaskDetailView: View {
     var body: some View {
         VStack(spacing: 0) {
             TextField("Título", text: $title)
-                .font(.system(size: 16, weight: .medium))
+                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .foregroundStyle(theme.text)
                 .padding(.horizontal, 18)
                 .padding(.vertical, 8)
                 .onSubmit {
@@ -36,26 +45,43 @@ struct TaskDetailView: View {
                 }
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 14) {
                     ForEach(currentList.items) { item in
                         HStack(alignment: .top, spacing: 10) {
                             Button {
                                 Task { await taskViewModel.toggleCompleted(item, in: currentList) }
                             } label: {
                                 Image(systemName: item.completed ? "checkmark.square.fill" : "square")
-                                    .foregroundStyle(item.completed ? currentList.accentColor : Color.appTextSecondary)
+                                    .foregroundStyle(item.completed ? currentList.accentColor : theme.textSecondary)
                             }
-                            Text(item.text)
-                                .font(.system(size: 14))
-                                .foregroundStyle(item.completed ? Color.appTextSecondary : Color.appText)
-                                .strikethrough(item.completed)
+
+                            if editingItemID == item.id {
+                                TextField("Item", text: $editingText)
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(theme.text)
+                                    .focused($focusedField, equals: .editingItem)
+                                    .submitLabel(.done)
+                                    .onSubmit { saveEditingItem() }
+                            } else {
+                                Text.markdown(item.text)
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(item.completed ? theme.textSecondary : theme.text)
+                                    .strikethrough(item.completed)
+                                    .onTapGesture {
+                                        editingItemID = item.id
+                                        editingText = item.text
+                                        focusedField = .editingItem
+                                    }
+                            }
+
                             Spacer()
+
                             Button {
                                 Task { await taskViewModel.deleteItem(item, from: currentList) }
                             } label: {
                                 Image(systemName: "xmark")
                                     .font(.system(size: 11))
-                                    .foregroundStyle(Color.appTextSecondary)
+                                    .foregroundStyle(theme.textSecondary)
                             }
                         }
                     }
@@ -65,31 +91,49 @@ struct TaskDetailView: View {
 
             HStack(spacing: 10) {
                 TextField("Novo item", text: $newItemText)
+                    .foregroundStyle(theme.text)
                     .padding(10)
-                    .background(Color.appCardBackground)
+                    .background(theme.card)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .focused($focusedField, equals: .newItem)
+                    .submitLabel(.done)
                     .onSubmit(addItem)
 
                 Button(action: addItem) {
                     Image(systemName: "plus")
-                        .foregroundStyle(.white)
+                        .foregroundStyle(theme.background)
                         .frame(width: 36, height: 36)
-                        .background(Color.appText)
+                        .background(theme.text)
                         .clipShape(Circle())
                 }
             }
             .padding(.horizontal, 18)
             .padding(.vertical, 12)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(theme.background)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
+            ToolbarItemGroup(placement: .keyboard) {
                 Button {
-                    dismiss()
+                    applyFormatting(marker: "**")
                 } label: {
-                    Image(systemName: "chevron.left")
-                        .foregroundStyle(Color.appTextSecondary)
+                    Image(systemName: "bold")
                 }
+                Button {
+                    applyFormatting(marker: "*")
+                } label: {
+                    Image(systemName: "italic")
+                }
+                Spacer()
+                Button("OK") {
+                    focusedField = nil
+                }
+            }
+        }
+        .onChange(of: focusedField) { _, newValue in
+            if newValue != .editingItem, editingItemID != nil {
+                saveEditingItem()
             }
         }
         .onDisappear {
@@ -104,5 +148,22 @@ struct TaskDetailView: View {
         let text = newItemText
         newItemText = ""
         Task { await taskViewModel.addItem(text: text, to: currentList) }
+    }
+
+    private func saveEditingItem() {
+        guard let id = editingItemID, let item = currentList.items.first(where: { $0.id == id }) else { return }
+        editingItemID = nil
+        Task { await taskViewModel.updateItem(item, in: currentList, text: editingText, completed: item.completed) }
+    }
+
+    private func applyFormatting(marker: String) {
+        switch focusedField {
+        case .newItem:
+            newItemText = MarkdownFormatting.toggling(newItemText, marker: marker)
+        case .editingItem:
+            editingText = MarkdownFormatting.toggling(editingText, marker: marker)
+        case nil:
+            break
+        }
     }
 }

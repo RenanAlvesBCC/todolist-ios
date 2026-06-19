@@ -1,0 +1,35 @@
+
+# Arquivos de estado do usuário no Xcode — guardam preferências pessoais
+# (qual aba estava aberta, posição de janela, breakpoints) que não fazem
+# sentido compartilhar entre máquinas diferentes.
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+ 
+# Pasta de build do Xcode — tudo aqui é gerado automaticamente a partir
+# do seu código-fonte (binários compilados, índices, logs). Nunca deve
+# ser versionado, é puro artefato de compilação, igual ao app.db do Go.
+DerivedData/
+build/
+*.o
+*.dSYM.zip
+*.dSYM
+ 
+# Gerenciadores de dependência (caso você use Swift Package Manager
+# de forma mais avançada, ou CocoaPods/Carthage no futuro)
+.build/
+Pods/
+Carthage/Build/
+ 
+# Arquivos de simulador e logs de teste
+*.xcresult
+*.gcno
+ 
+# Arquivos de sistema do macOS
+.DS_Store
+ 
+# Variáveis de ambiente / segredos (mesma lógica do backend: nunca
+# versionar chave de API, mesmo que aqui ainda não exista um .env)
+.env
+Secrets.swift
+ 

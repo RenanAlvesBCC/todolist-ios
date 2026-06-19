@@ -75,10 +75,10 @@
 		594B70DF2FE5911900621F6E = {
 			isa = PBXGroup;
 			children = (
+				59D7781B2FE5922F00C085F7 /* TodoList */,
 				594B70F82FE5911A00621F6E /* TodoListTests */,
 				594B71022FE5911A00621F6E /* TodoListUITests */,
 				594B70E92FE5911900621F6E /* Products */,
-				59D7781B2FE5922F00C085F7 /* TodoList */,
 			);
 			sourceTree = "<group>";
 		};

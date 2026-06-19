@@ -21,6 +21,10 @@ enum AppTheme: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    var colorScheme: ColorScheme {
+        self == .preto ? .dark : .light
+    }
+    
     var background: Color {
         switch self {
         case .branco: return Color(hex: 0xFFFFFF)

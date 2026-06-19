@@ -27,6 +27,7 @@ struct TodoListApp: App {
         WindowGroup {
             ContentView(authViewModel: authViewModel, taskViewModel: taskViewModel)
                 .environment(\.appTheme, selectedTheme)
+                .preferredColorScheme(selectedTheme.colorScheme)
         }
     }
 }

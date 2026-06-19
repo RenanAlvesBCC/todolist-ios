@@ -76,13 +76,6 @@ final class AuthViewModel {
     }
 
     private func message(for error: Error) -> String {
-        guard let apiError = error as? APIError else {
-            return error.localizedDescription
-        }
-        switch apiError {
-        case .server(let message): return message
-        case .invalidResponse: return "Não foi possível conectar ao servidor"
-        case .decoding: return "Resposta inesperada do servidor"
-        }
+        (error as? APIError)?.userMessage ?? error.localizedDescription
     }
 }

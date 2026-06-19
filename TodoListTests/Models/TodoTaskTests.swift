@@ -8,7 +8,7 @@
 import XCTest
 @testable import TodoList
 
-final class TaskTests: XCTestCase {
+final class TodoTaskTests: XCTestCase {
 
     private var decoder: JSONDecoder {
         let decoder = JSONDecoder()
@@ -30,7 +30,7 @@ final class TaskTests: XCTestCase {
         }
         """.data(using: .utf8)!
 
-        let task = try decoder.decode(Task.self, from: json)
+        let task = try decoder.decode(TodoTask.self, from: json)
 
         XCTAssertEqual(task.id, 1)
         XCTAssertEqual(task.title, "Estudar Go")
@@ -44,6 +44,6 @@ final class TaskTests: XCTestCase {
         { "ID": 1, "title": "Faltam os outros campos obrigatórios" }
         """.data(using: .utf8)!
 
-        XCTAssertThrowsError(try decoder.decode(Task.self, from: json))
+        XCTAssertThrowsError(try decoder.decode(TodoTask.self, from: json))
     }
 }

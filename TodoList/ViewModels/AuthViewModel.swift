@@ -26,6 +26,12 @@ final class AuthViewModel {
         self.apiClient = apiClient
     }
 
+    func registerAndLogin(username: String, password: String) async {
+        await register(username: username, password: password)
+        guard errorMessage == nil else { return }
+        await login(username: username, password: password)
+    }
+    
     func register(username: String, password: String) async {
         guard validate(username: username, password: password) else { return }
 

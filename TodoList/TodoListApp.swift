@@ -9,9 +9,11 @@ import SwiftUI
 
 @main
 struct TodoListApp: App {
+    @State private var authViewModel = AuthViewModel()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(authViewModel: authViewModel)
         }
     }
 }

@@ -81,4 +81,28 @@ final class AuthViewModelTests: XCTestCase {
 
         XCTAssertEqual(viewModel.state, .signedOut)
     }
+    
+    func testRegisterAndLoginCallsBothAndSignsInOnSuccess() async {
+        let mock = MockAuthAPIClient()
+        let viewModel = AuthViewModel(apiClient: mock)
+
+        await viewModel.registerAndLogin(username: "renan", password: "senha123")
+
+        XCTAssertEqual(mock.registerCallCount, 1)
+        XCTAssertEqual(mock.loginCallCount, 1)
+        XCTAssertEqual(viewModel.state, .signedIn)
+    }
+
+    func testRegisterAndLoginStopsIfRegisterFails() async {
+        let mock = MockAuthAPIClient()
+        mock.registerResult = .failure(APIError.server(message: "usuário já existe"))
+        let viewModel = AuthViewModel(apiClient: mock)
+
+        await viewModel.registerAndLogin(username: "renan", password: "senha123")
+
+        XCTAssertEqual(mock.registerCallCount, 1)
+        XCTAssertEqual(mock.loginCallCount, 0)
+        XCTAssertEqual(viewModel.errorMessage, "usuário já existe")
+        XCTAssertEqual(viewModel.state, .signedOut)
+    }
 }

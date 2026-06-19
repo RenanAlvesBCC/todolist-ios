@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Task: Codable, Identifiable, Equatable {
+struct TodoTask: Codable, Identifiable, Equatable {
     let id: Int
     let createdAt: Date
     let updatedAt: Date

@@ -1,5 +1,5 @@
 //
-//  Task.swift
+//  TaskItem.swift
 //  TodoList
 //
 //  Created by Renan Alves on 19/06/26.
@@ -7,22 +7,20 @@
 
 import Foundation
 
-struct TodoTask: Codable, Identifiable, Equatable {
+struct TaskItem: Codable, Identifiable, Equatable {
     let id: Int
     let createdAt: Date
     let updatedAt: Date
-    let title: String
-    let description: String
-    let completed: Bool
-    let userID: Int
+    var text: String
+    var completed: Bool
+    let taskListID: Int
 
     enum CodingKeys: String, CodingKey {
         case id = "ID"
         case createdAt = "CreatedAt"
         case updatedAt = "UpdatedAt"
-        case title
-        case description
+        case text
         case completed
-        case userID = "user_id"
+        case taskListID = "task_list_id"
     }
 }

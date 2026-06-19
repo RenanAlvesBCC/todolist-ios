@@ -68,12 +68,12 @@ final class APIClientTests: XCTestCase {
         }
     }
     
-    func testFetchTasksThrowsWhenNotAuthenticated() async {
+    func testFetchListsThrowsWhenNotAuthenticated() async {
         let mock = MockURLSession()
         let client = APIClient(session: mock)
 
         do {
-            _ = try await client.fetchTasks(completed: nil, search: "", page: 1, limit: 10)
+            _ = try await client.fetchLists(search: "", page: 1, limit: 20)
             XCTFail("Era esperado um erro de autenticação")
         } catch APIError.notAuthenticated {
             // esperado
@@ -82,48 +82,61 @@ final class APIClientTests: XCTestCase {
         }
     }
 
-    func testFetchTasksSendsTokenAndQueryParameters() async throws {
+    func testFetchListsSendsTokenAndQueryParameters() async throws {
         let mock = MockURLSession()
         mock.enqueue(data: #"{"token":"fake-token"}"#.data(using: .utf8)!)
-        mock.enqueue(data: #"{"tasks":[],"page":1,"limit":10,"total":0,"total_pages":0}"#.data(using: .utf8)!)
+        mock.enqueue(data: #"{"lists":[],"page":1,"limit":20,"total":0,"total_pages":0}"#.data(using: .utf8)!)
 
         let client = APIClient(session: mock)
         _ = try await client.login(username: "renan", password: "senha123")
-        _ = try await client.fetchTasks(completed: false, search: "estudar", page: 2, limit: 5)
+        _ = try await client.fetchLists(search: "compras", page: 2, limit: 5)
 
-        let taskRequest = mock.requests.last
-        XCTAssertEqual(taskRequest?.httpMethod, "GET")
-        XCTAssertEqual(taskRequest?.value(forHTTPHeaderField: "Authorization"), "Bearer fake-token")
+        let listRequest = mock.requests.last
+        XCTAssertEqual(listRequest?.httpMethod, "GET")
+        XCTAssertEqual(listRequest?.value(forHTTPHeaderField: "Authorization"), "Bearer fake-token")
 
-        let query = taskRequest?.url.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false)?.queryItems }
-        XCTAssertTrue(query?.contains(URLQueryItem(name: "completed", value: "false")) ?? false)
-        XCTAssertTrue(query?.contains(URLQueryItem(name: "search", value: "estudar")) ?? false)
+        let query = listRequest?.url.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false)?.queryItems }
+        XCTAssertTrue(query?.contains(URLQueryItem(name: "search", value: "compras")) ?? false)
+        XCTAssertTrue(query?.contains(URLQueryItem(name: "page", value: "2")) ?? false)
     }
 
-    func testCreateTaskSendsPostAndReturnsDecodedTask() async throws {
+    func testCreateListSendsPostAndReturnsDecodedList() async throws {
         let mock = MockURLSession()
         mock.enqueue(data: #"{"token":"fake-token"}"#.data(using: .utf8)!)
-        mock.enqueue(data: #"{"ID":1,"CreatedAt":"2026-06-18T10:00:00Z","UpdatedAt":"2026-06-18T10:00:00Z","title":"Estudar Go","description":"","completed":false,"user_id":1}"#.data(using: .utf8)!, statusCode: 201)
+        mock.enqueue(data: #"{"ID":1,"CreatedAt":"2026-06-18T10:00:00Z","UpdatedAt":"2026-06-18T10:00:00Z","title":"Compras da semana","user_id":1,"items":[]}"#.data(using: .utf8)!, statusCode: 201)
 
         let client = APIClient(session: mock)
         _ = try await client.login(username: "renan", password: "senha123")
-        let task = try await client.createTask(title: "Estudar Go", description: "")
+        let list = try await client.createList(title: "Compras da semana")
 
-        XCTAssertEqual(task.title, "Estudar Go")
+        XCTAssertEqual(list.title, "Compras da semana")
         XCTAssertEqual(mock.requests.last?.httpMethod, "POST")
-        XCTAssertEqual(mock.requests.last?.url?.path, "/api/tasks")
+        XCTAssertEqual(mock.requests.last?.url?.path, "/api/lists")
     }
 
-    func testDeleteTaskSucceedsOn204NoContent() async throws {
+    func testAddItemSendsPostAndReturnsDecodedItem() async throws {
+        let mock = MockURLSession()
+        mock.enqueue(data: #"{"token":"fake-token"}"#.data(using: .utf8)!)
+        mock.enqueue(data: #"{"ID":10,"CreatedAt":"2026-06-18T10:05:00Z","UpdatedAt":"2026-06-18T10:05:00Z","text":"Leite","completed":false,"task_list_id":1}"#.data(using: .utf8)!, statusCode: 201)
+
+        let client = APIClient(session: mock)
+        _ = try await client.login(username: "renan", password: "senha123")
+        let item = try await client.addItem(listID: 1, text: "Leite")
+
+        XCTAssertEqual(item.text, "Leite")
+        XCTAssertEqual(mock.requests.last?.url?.path, "/api/lists/1/items")
+    }
+
+    func testDeleteListSucceedsOn204NoContent() async throws {
         let mock = MockURLSession()
         mock.enqueue(data: #"{"token":"fake-token"}"#.data(using: .utf8)!)
         mock.enqueue(data: Data(), statusCode: 204)
 
         let client = APIClient(session: mock)
         _ = try await client.login(username: "renan", password: "senha123")
-        try await client.deleteTask(id: 1)
+        try await client.deleteList(id: 1)
 
         XCTAssertEqual(mock.requests.last?.httpMethod, "DELETE")
-        XCTAssertEqual(mock.requests.last?.url?.path, "/api/tasks/1")
+        XCTAssertEqual(mock.requests.last?.url?.path, "/api/lists/1")
     }
 }

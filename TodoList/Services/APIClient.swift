@@ -47,17 +47,14 @@ final class APIClient {
         token = nil
     }
 
-    // MARK: - Tarefas
+    // MARK: - Listas e itens
 
-    func fetchTasks(completed: Bool?, search: String, page: Int, limit: Int) async throws -> TaskListResponse {
-        var components = URLComponents(url: baseURL.appendingPathComponent("/api/tasks"), resolvingAgainstBaseURL: false)!
+    func fetchLists(search: String, page: Int, limit: Int) async throws -> TaskListResponse {
+        var components = URLComponents(url: baseURL.appendingPathComponent("/api/lists"), resolvingAgainstBaseURL: false)!
         var queryItems = [
             URLQueryItem(name: "page", value: String(page)),
             URLQueryItem(name: "limit", value: String(limit))
         ]
-        if let completed {
-            queryItems.append(URLQueryItem(name: "completed", value: String(completed)))
-        }
         if !search.isEmpty {
             queryItems.append(URLQueryItem(name: "search", value: search))
         }
@@ -67,16 +64,29 @@ final class APIClient {
         return try await perform(request)
     }
 
-    func createTask(title: String, description: String) async throws -> TodoTask {
-        try await send(method: "POST", path: "/api/tasks", body: CreateTaskInput(title: title, description: description), authenticated: true)
+    func createList(title: String) async throws -> TaskList {
+        try await send(method: "POST", path: "/api/lists", body: CreateListInput(title: title), authenticated: true)
     }
 
-    func updateTask(id: Int, title: String, description: String, completed: Bool) async throws -> TodoTask {
-        try await send(method: "PUT", path: "/api/tasks/\(id)", body: UpdateTaskInput(title: title, description: description, completed: completed), authenticated: true)
+    func updateList(id: Int, title: String) async throws -> TaskList {
+        try await send(method: "PUT", path: "/api/lists/\(id)", body: UpdateListInput(title: title), authenticated: true)
     }
 
-    func deleteTask(id: Int) async throws {
-        let request = try makeRequest(url: baseURL.appendingPathComponent("/api/tasks/\(id)"), method: "DELETE", authenticated: true)
+    func deleteList(id: Int) async throws {
+        let request = try makeRequest(url: baseURL.appendingPathComponent("/api/lists/\(id)"), method: "DELETE", authenticated: true)
+        try await performNoContent(request)
+    }
+
+    func addItem(listID: Int, text: String) async throws -> TaskItem {
+        try await send(method: "POST", path: "/api/lists/\(listID)/items", body: CreateItemInput(text: text), authenticated: true)
+    }
+
+    func updateItem(listID: Int, itemID: Int, text: String, completed: Bool) async throws -> TaskItem {
+        try await send(method: "PUT", path: "/api/lists/\(listID)/items/\(itemID)", body: UpdateItemInput(text: text, completed: completed), authenticated: true)
+    }
+
+    func deleteItem(listID: Int, itemID: Int) async throws {
+        let request = try makeRequest(url: baseURL.appendingPathComponent("/api/lists/\(listID)/items/\(itemID)"), method: "DELETE", authenticated: true)
         try await performNoContent(request)
     }
 

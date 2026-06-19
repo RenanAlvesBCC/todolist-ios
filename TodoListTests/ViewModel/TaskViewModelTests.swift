@@ -9,121 +9,166 @@ import XCTest
 @testable import TodoList
 
 final class MockTaskAPIClient: TaskAPIClient {
-    var fetchTasksResult: Result<TaskListResponse, Error> = .success(TaskListResponse(tasks: [], page: 1, limit: 100, total: 0, totalPages: 0))
-    var createTaskResult: Result<TodoTask, Error> = .success(.stub())
-    var updateTaskResult: Result<TodoTask, Error> = .success(.stub())
-    var deleteTaskError: Error?
+    var fetchListsResult: Result<TaskListResponse, Error> = .success(TaskListResponse(lists: [], page: 1, limit: 100, total: 0, totalPages: 0))
+    var createListResult: Result<TaskList, Error> = .success(.stub())
+    var deleteListError: Error?
+    var addItemResult: Result<TaskItem, Error> = .success(.stub())
+    var updateItemResult: Result<TaskItem, Error> = .success(.stub())
+    var deleteItemError: Error?
 
-    private(set) var createTaskCallCount = 0
-    private(set) var lastUpdateInput: (id: Int, title: String, description: String, completed: Bool)?
-    private(set) var lastDeletedID: Int?
+    private(set) var createListCallCount = 0
+    private(set) var lastDeletedListID: Int?
+    private(set) var lastUpdateItemInput: (listID: Int, itemID: Int, text: String, completed: Bool)?
+    private(set) var lastDeleteItemInput: (listID: Int, itemID: Int)?
 
-    func fetchTasks(completed: Bool?, search: String, page: Int, limit: Int) async throws -> TaskListResponse {
-        try fetchTasksResult.get()
+    func fetchLists(search: String, page: Int, limit: Int) async throws -> TaskListResponse {
+        try fetchListsResult.get()
     }
 
-    func createTask(title: String, description: String) async throws -> TodoTask {
-        createTaskCallCount += 1
-        return try createTaskResult.get()
+    func createList(title: String) async throws -> TaskList {
+        createListCallCount += 1
+        return try createListResult.get()
     }
 
-    func updateTask(id: Int, title: String, description: String, completed: Bool) async throws -> TodoTask {
-        lastUpdateInput = (id, title, description, completed)
-        return try updateTaskResult.get()
+    func updateList(id: Int, title: String) async throws -> TaskList {
+        .stub(id: id, title: title)
     }
 
-    func deleteTask(id: Int) async throws {
-        lastDeletedID = id
-        if let deleteTaskError {
-            throw deleteTaskError
-        }
+    func deleteList(id: Int) async throws {
+        lastDeletedListID = id
+        if let deleteListError { throw deleteListError }
+    }
+
+    func addItem(listID: Int, text: String) async throws -> TaskItem {
+        try addItemResult.get()
+    }
+
+    func updateItem(listID: Int, itemID: Int, text: String, completed: Bool) async throws -> TaskItem {
+        lastUpdateItemInput = (listID, itemID, text, completed)
+        return try updateItemResult.get()
+    }
+
+    func deleteItem(listID: Int, itemID: Int) async throws {
+        lastDeleteItemInput = (listID, itemID)
+        if let deleteItemError { throw deleteItemError }
     }
 }
 
 @MainActor
 final class TaskViewModelTests: XCTestCase {
 
-    func testLoadTasksPopulatesTasksOnSuccess() async {
+    func testLoadListsPopulatesTaskListsOnSuccess() async {
         let mock = MockTaskAPIClient()
-        mock.fetchTasksResult = .success(TaskListResponse(tasks: [.stub(id: 1), .stub(id: 2)], page: 1, limit: 100, total: 2, totalPages: 1))
+        mock.fetchListsResult = .success(TaskListResponse(lists: [.stub(id: 1), .stub(id: 2)], page: 1, limit: 100, total: 2, totalPages: 1))
         let viewModel = TaskViewModel(apiClient: mock)
 
-        await viewModel.loadTasks()
+        await viewModel.loadLists()
 
-        XCTAssertEqual(viewModel.tasks.count, 2)
+        XCTAssertEqual(viewModel.taskLists.count, 2)
         XCTAssertNil(viewModel.errorMessage)
     }
 
-    func testLoadTasksSetsErrorMessageOnFailure() async {
+    func testLoadListsSetsErrorMessageOnFailure() async {
         let mock = MockTaskAPIClient()
-        mock.fetchTasksResult = .failure(APIError.notAuthenticated)
+        mock.fetchListsResult = .failure(APIError.notAuthenticated)
         let viewModel = TaskViewModel(apiClient: mock)
 
-        await viewModel.loadTasks()
+        await viewModel.loadLists()
 
-        XCTAssertTrue(viewModel.tasks.isEmpty)
+        XCTAssertTrue(viewModel.taskLists.isEmpty)
         XCTAssertEqual(viewModel.errorMessage, "Sessão expirada, faça login novamente")
     }
 
-    func testAddTaskAppendsReturnedTaskToList() async {
+    func testAddListAppendsReturnedListToTaskLists() async {
         let mock = MockTaskAPIClient()
-        mock.createTaskResult = .success(.stub(id: 9, title: "Nova lista"))
+        mock.createListResult = .success(.stub(id: 9, title: "Nova lista"))
         let viewModel = TaskViewModel(apiClient: mock)
 
-        await viewModel.addTask(title: "Nova lista", description: "")
+        await viewModel.addList(title: "Nova lista")
 
-        XCTAssertEqual(viewModel.tasks.first?.title, "Nova lista")
-        XCTAssertEqual(mock.createTaskCallCount, 1)
+        XCTAssertEqual(viewModel.taskLists.first?.title, "Nova lista")
+        XCTAssertEqual(mock.createListCallCount, 1)
     }
 
-    func testAddTaskWithBlankTitleDoesNotCallAPI() async {
+    func testAddListWithBlankTitleDoesNotCallAPI() async {
         let mock = MockTaskAPIClient()
         let viewModel = TaskViewModel(apiClient: mock)
 
-        await viewModel.addTask(title: "   ", description: "")
+        await viewModel.addList(title: "   ")
 
-        XCTAssertEqual(mock.createTaskCallCount, 0)
+        XCTAssertEqual(mock.createListCallCount, 0)
         XCTAssertEqual(viewModel.errorMessage, "O título é obrigatório")
     }
 
-    func testToggleCompletedSendsInvertedValueAndUpdatesLocalTask() async {
+    func testDeleteListRemovesItFromTaskLists() async {
         let mock = MockTaskAPIClient()
-        let original = TodoTask.stub(id: 1, completed: false)
-        mock.fetchTasksResult = .success(TaskListResponse(tasks: [original], page: 1, limit: 100, total: 1, totalPages: 1))
-        mock.updateTaskResult = .success(.stub(id: 1, completed: true))
+        let list = TaskList.stub(id: 1)
+        mock.fetchListsResult = .success(TaskListResponse(lists: [list], page: 1, limit: 100, total: 1, totalPages: 1))
         let viewModel = TaskViewModel(apiClient: mock)
-        await viewModel.loadTasks()
+        await viewModel.loadLists()
 
-        await viewModel.toggleCompleted(original)
+        await viewModel.deleteList(list)
 
-        XCTAssertEqual(mock.lastUpdateInput?.completed, true)
-        XCTAssertEqual(viewModel.tasks.first?.completed, true)
+        XCTAssertTrue(viewModel.taskLists.isEmpty)
+        XCTAssertEqual(mock.lastDeletedListID, 1)
     }
 
-    func testDeleteRemovesTaskFromList() async {
+    func testAddItemAppendsItemToCorrectList() async {
         let mock = MockTaskAPIClient()
-        let task = TodoTask.stub(id: 1)
-        mock.fetchTasksResult = .success(TaskListResponse(tasks: [task], page: 1, limit: 100, total: 1, totalPages: 1))
+        let list = TaskList.stub(id: 1)
+        mock.fetchListsResult = .success(TaskListResponse(lists: [list], page: 1, limit: 100, total: 1, totalPages: 1))
+        mock.addItemResult = .success(.stub(id: 5, text: "Leite", taskListID: 1))
         let viewModel = TaskViewModel(apiClient: mock)
-        await viewModel.loadTasks()
+        await viewModel.loadLists()
 
-        await viewModel.delete(task)
+        await viewModel.addItem(text: "Leite", to: list)
 
-        XCTAssertTrue(viewModel.tasks.isEmpty)
-        XCTAssertEqual(mock.lastDeletedID, 1)
+        XCTAssertEqual(viewModel.taskLists.first?.items.count, 1)
+        XCTAssertEqual(viewModel.taskLists.first?.items.first?.text, "Leite")
     }
 
-    func testDeleteFailureKeepsTaskAndSetsErrorMessage() async {
+    func testToggleCompletedSendsInvertedValueAndUpdatesLocalItem() async {
         let mock = MockTaskAPIClient()
-        let task = TodoTask.stub(id: 1)
-        mock.fetchTasksResult = .success(TaskListResponse(tasks: [task], page: 1, limit: 100, total: 1, totalPages: 1))
-        mock.deleteTaskError = APIError.server(message: "tarefa não encontrada")
+        let item = TaskItem.stub(id: 5, completed: false, taskListID: 1)
+        let list = TaskList.stub(id: 1, items: [item])
+        mock.fetchListsResult = .success(TaskListResponse(lists: [list], page: 1, limit: 100, total: 1, totalPages: 1))
+        mock.updateItemResult = .success(.stub(id: 5, completed: true, taskListID: 1))
         let viewModel = TaskViewModel(apiClient: mock)
-        await viewModel.loadTasks()
+        await viewModel.loadLists()
 
-        await viewModel.delete(task)
+        await viewModel.toggleCompleted(item, in: list)
 
-        XCTAssertEqual(viewModel.tasks.count, 1)
-        XCTAssertEqual(viewModel.errorMessage, "tarefa não encontrada")
+        XCTAssertEqual(mock.lastUpdateItemInput?.completed, true)
+        XCTAssertEqual(viewModel.taskLists.first?.items.first?.completed, true)
+    }
+
+    func testDeleteItemRemovesItFromCorrectList() async {
+        let mock = MockTaskAPIClient()
+        let item = TaskItem.stub(id: 5, taskListID: 1)
+        let list = TaskList.stub(id: 1, items: [item])
+        mock.fetchListsResult = .success(TaskListResponse(lists: [list], page: 1, limit: 100, total: 1, totalPages: 1))
+        let viewModel = TaskViewModel(apiClient: mock)
+        await viewModel.loadLists()
+
+        await viewModel.deleteItem(item, from: list)
+
+        XCTAssertTrue(viewModel.taskLists.first?.items.isEmpty ?? false)
+        XCTAssertEqual(mock.lastDeleteItemInput?.listID, 1)
+        XCTAssertEqual(mock.lastDeleteItemInput?.itemID, 5)
+    }
+
+    func testDeleteItemFailureKeepsItemAndSetsErrorMessage() async {
+        let mock = MockTaskAPIClient()
+        let item = TaskItem.stub(id: 5, taskListID: 1)
+        let list = TaskList.stub(id: 1, items: [item])
+        mock.fetchListsResult = .success(TaskListResponse(lists: [list], page: 1, limit: 100, total: 1, totalPages: 1))
+        mock.deleteItemError = APIError.server(message: "item não encontrado")
+        let viewModel = TaskViewModel(apiClient: mock)
+        await viewModel.loadLists()
+
+        await viewModel.deleteItem(item, from: list)
+
+        XCTAssertEqual(viewModel.taskLists.first?.items.count, 1)
+        XCTAssertEqual(viewModel.errorMessage, "item não encontrado")
     }
 }

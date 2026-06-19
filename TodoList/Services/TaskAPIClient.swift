@@ -7,11 +7,16 @@
 
 import Foundation
 
+import Foundation
+
 protocol TaskAPIClient {
-    func fetchTasks(completed: Bool?, search: String, page: Int, limit: Int) async throws -> TaskListResponse
-    func createTask(title: String, description: String) async throws -> TodoTask
-    func updateTask(id: Int, title: String, description: String, completed: Bool) async throws -> TodoTask
-    func deleteTask(id: Int) async throws
+    func fetchLists(search: String, page: Int, limit: Int) async throws -> TaskListResponse
+    func createList(title: String) async throws -> TaskList
+    func updateList(id: Int, title: String) async throws -> TaskList
+    func deleteList(id: Int) async throws
+    func addItem(listID: Int, text: String) async throws -> TaskItem
+    func updateItem(listID: Int, itemID: Int, text: String, completed: Bool) async throws -> TaskItem
+    func deleteItem(listID: Int, itemID: Int) async throws
 }
 
 extension APIClient: TaskAPIClient {}

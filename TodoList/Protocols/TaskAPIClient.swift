@@ -7,8 +7,6 @@
 
 import Foundation
 
-import Foundation
-
 protocol TaskAPIClient {
     func fetchLists(search: String, page: Int, limit: Int) async throws -> TaskListResponse
     func createList(title: String) async throws -> TaskList
@@ -18,5 +16,3 @@ protocol TaskAPIClient {
     func updateItem(listID: Int, itemID: Int, text: String, completed: Bool) async throws -> TaskItem
     func deleteItem(listID: Int, itemID: Int) async throws
 }
-
-extension APIClient: TaskAPIClient {}

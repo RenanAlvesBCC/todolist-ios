@@ -11,5 +11,3 @@ protocol AuthAPIClient {
     func register(username: String, password: String) async throws -> MessageResponse
     func login(username: String, password: String) async throws -> LoginResponse
 }
-
-extension APIClient: AuthAPIClient {}

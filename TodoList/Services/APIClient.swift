@@ -142,3 +142,7 @@ final class APIClient {
         return try await perform(request)
     }
 }
+
+extension URLSession: URLSessionProtocol {}
+extension APIClient: AuthAPIClient {}
+extension APIClient: TaskAPIClient {}

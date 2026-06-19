@@ -66,7 +66,6 @@ struct TaskGridView: View {
 
     @Environment(\.appTheme) private var theme
     @State private var isShowingAddList = false
-    @State private var isShowingMenu = false
     @State private var isShowingSettings = false
     @State private var newListTitle = ""
     @State private var selectedList: TaskList?
@@ -131,14 +130,6 @@ struct TaskGridView: View {
             .navigationTitle("To-do list")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        isShowingMenu = true
-                    } label: {
-                        Image(systemName: "line.3.horizontal")
-                            .foregroundStyle(theme.textSecondary)
-                    }
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         isShowingSettings = true
@@ -148,13 +139,8 @@ struct TaskGridView: View {
                     }
                 }
             }
-            .confirmationDialog("Menu", isPresented: $isShowingMenu, titleVisibility: .hidden) {
-                Button("Sair", role: .destructive) {
-                    authViewModel.logout()
-                }
-            }
             .sheet(isPresented: $isShowingSettings) {
-                SettingsView()
+                SettingsView(authViewModel: authViewModel)
             }
             .alert("Nova lista", isPresented: $isShowingAddList) {
                 TextField("Título", text: $newListTitle)

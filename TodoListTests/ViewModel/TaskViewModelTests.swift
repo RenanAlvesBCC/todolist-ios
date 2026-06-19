@@ -171,4 +171,16 @@ final class TaskViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.taskLists.first?.items.count, 1)
         XCTAssertEqual(viewModel.errorMessage, "item não encontrado")
     }
+    
+    func testRenameListUpdatesTitleInTaskLists() async {
+        let mock = MockTaskAPIClient()
+        let list = TaskList.stub(id: 1, title: "Antigo título")
+        mock.fetchListsResult = .success(TaskListResponse(lists: [list], page: 1, limit: 100, total: 1, totalPages: 1))
+        let viewModel = TaskViewModel(apiClient: mock)
+        await viewModel.loadLists()
+
+        await viewModel.renameList(list, title: "Novo título")
+
+        XCTAssertEqual(viewModel.taskLists.first?.title, "Novo título")
+    }
 }

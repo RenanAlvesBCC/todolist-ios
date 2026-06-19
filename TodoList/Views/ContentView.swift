@@ -9,36 +9,19 @@ import SwiftUI
 
 struct ContentView: View {
     let authViewModel: AuthViewModel
+    let taskViewModel: TaskViewModel
 
     var body: some View {
         switch authViewModel.state {
         case .signedOut:
             LoginView(viewModel: authViewModel)
         case .signedIn:
-            SignedInPlaceholderView(viewModel: authViewModel)
+            TaskGridView(authViewModel: authViewModel, taskViewModel: taskViewModel)
         }
-    }
-}
-
-private struct SignedInPlaceholderView: View {
-    let viewModel: AuthViewModel
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Text("Login realizado com sucesso 🎉")
-                .font(.headline)
-            Text("A grade de tarefas chega na próxima fase.")
-                .font(.subheadline)
-                .foregroundStyle(Color.appTextSecondary)
-            Button("Sair", role: .destructive) {
-                viewModel.logout()
-            }
-            .padding(.top)
-        }
-        .padding()
     }
 }
 
 #Preview {
-    ContentView(authViewModel: AuthViewModel())
+    let client = APIClient()
+    return ContentView(authViewModel: AuthViewModel(apiClient: client), taskViewModel: TaskViewModel(apiClient: client))
 }

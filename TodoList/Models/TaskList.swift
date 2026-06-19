@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct TaskList: Codable, Identifiable, Equatable {
+struct TaskList: Codable, Identifiable, Equatable, Hashable {
     let id: Int
     let createdAt: Date
     let updatedAt: Date

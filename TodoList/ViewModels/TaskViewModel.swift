@@ -111,6 +111,24 @@ final class TaskViewModel {
         }
     }
 
+    func renameList(_ list: TaskList, title: String) async {
+        guard !title.trimmingCharacters(in: .whitespaces).isEmpty else {
+            errorMessage = "O título é obrigatório"
+            return
+        }
+
+        errorMessage = nil
+
+        do {
+            let updated = try await apiClient.updateList(id: list.id, title: title)
+            if let index = taskLists.firstIndex(where: { $0.id == updated.id }) {
+                taskLists[index].title = updated.title
+            }
+        } catch {
+            errorMessage = message(for: error)
+        }
+    }
+    
     private func message(for error: Error) -> String {
         (error as? APIError)?.userMessage ?? error.localizedDescription
     }

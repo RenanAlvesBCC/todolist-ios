@@ -9,11 +9,18 @@ import SwiftUI
 
 @main
 struct TodoListApp: App {
-    @State private var authViewModel = AuthViewModel()
+    private let apiClient = APIClient()
+    @State private var authViewModel: AuthViewModel
+    @State private var taskViewModel: TaskViewModel
+
+    init() {
+        _authViewModel = State(initialValue: AuthViewModel(apiClient: apiClient))
+        _taskViewModel = State(initialValue: TaskViewModel(apiClient: apiClient))
+    }
 
     var body: some Scene {
         WindowGroup {
-            ContentView(authViewModel: authViewModel)
+            ContentView(authViewModel: authViewModel, taskViewModel: taskViewModel)
         }
     }
 }

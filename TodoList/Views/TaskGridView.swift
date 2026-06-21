@@ -37,10 +37,10 @@ struct TaskGridView: View {
                 } else if taskViewModel.taskLists.isEmpty {
                     Spacer()
                     VStack(spacing: 8) {
-                        Image(systemName: "checklist")
+                        Image(systemName: taskViewModel.searchText.isEmpty ? "checklist" : "magnifyingglass")
                             .font(.system(size: 32))
                             .foregroundStyle(theme.textSecondary)
-                        Text("Nenhuma lista ainda")
+                        Text(taskViewModel.searchText.isEmpty ? "Nenhuma lista ainda" : "Nenhuma lista encontrada")
                             .font(.subheadline)
                             .foregroundStyle(theme.textSecondary)
                     }
@@ -105,6 +105,10 @@ struct TaskGridView: View {
             .navigationDestination(item: $selectedList) { list in
                 TaskDetailView(taskViewModel: taskViewModel, list: list)
             }
+            .searchable(text: Binding(
+                get: { taskViewModel.searchText },
+                set: { taskViewModel.searchText = $0 }
+            ), prompt: "Buscar listas")
         }
     }
 }

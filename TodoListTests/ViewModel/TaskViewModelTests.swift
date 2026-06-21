@@ -20,9 +20,13 @@ final class MockTaskAPIClient: TaskAPIClient {
     private(set) var lastDeletedListID: Int?
     private(set) var lastUpdateItemInput: (listID: Int, itemID: Int, text: String, completed: Bool)?
     private(set) var lastDeleteItemInput: (listID: Int, itemID: Int)?
+    private(set) var fetchListsCallCount = 0
+    private(set) var lastFetchListsSearch: String?
 
     func fetchLists(search: String, page: Int, limit: Int) async throws -> TaskListResponse {
-        try fetchListsResult.get()
+        fetchListsCallCount += 1
+        lastFetchListsSearch = search
+        return try fetchListsResult.get()
     }
 
     func createList(title: String) async throws -> TaskList {

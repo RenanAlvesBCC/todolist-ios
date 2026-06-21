@@ -14,6 +14,18 @@ final class TaskViewModel {
     private(set) var taskLists: [TaskList] = []
     var isLoading = false
     var errorMessage: String?
+    var searchText = "" {
+        didSet {
+            searchTask?.cancel()
+            searchTask = Task {
+                try? await Task.sleep(for: .milliseconds(400))
+                guard !Task.isCancelled else { return }
+                await loadLists()
+            }
+        }
+    }
+
+    private var searchTask: Task<Void, Never>?
 
     private let apiClient: TaskAPIClient
 
@@ -26,7 +38,7 @@ final class TaskViewModel {
         errorMessage = nil
 
         do {
-            let response = try await apiClient.fetchLists(search: "", page: 1, limit: 100)
+            let response = try await apiClient.fetchLists(search: searchText, page: 1, limit: 100)
             taskLists = response.lists
         } catch {
             errorMessage = message(for: error)
@@ -128,6 +140,7 @@ final class TaskViewModel {
             errorMessage = message(for: error)
         }
     }
+    
     
     private func message(for error: Error) -> String {
         (error as? APIError)?.userMessage ?? error.localizedDescription

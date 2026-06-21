@@ -5,6 +5,7 @@
 //  Created by Renan Alves on 19/06/26.
 //
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct TaskDetailView: View {
     let taskViewModel: TaskViewModel
@@ -18,6 +19,7 @@ struct TaskDetailView: View {
     @State private var editingItemID: Int?
     @State private var editingText = AttributedString()
     @State private var editingSelection = AttributedTextSelection()
+    @State private var draggingItemID: Int?
     @FocusState private var focusedField: Field?
 
     private enum Field: Hashable {
@@ -92,6 +94,14 @@ struct TaskDetailView: View {
 
                             Spacer()
 
+                            Image(systemName: "line.3.horizontal")
+                                .font(.system(size: 12))
+                                .foregroundStyle(theme.textSecondary.opacity(0.5))
+                                .onDrag {
+                                    draggingItemID = item.id
+                                    return NSItemProvider(object: String(item.id) as NSString)
+                                }
+
                             Button {
                                 Task { await taskViewModel.deleteItem(item, from: currentList) }
                             } label: {
@@ -100,6 +110,7 @@ struct TaskDetailView: View {
                                     .foregroundStyle(theme.textSecondary)
                             }
                         }
+                        .onDrop(of: [.text], delegate: TaskItemDropDelegate(item: item, list: currentList, draggingItemID: $draggingItemID, taskViewModel: taskViewModel))
                     }
                 }
                 .padding(18)

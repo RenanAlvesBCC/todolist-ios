@@ -139,4 +139,21 @@ final class APIClientTests: XCTestCase {
         XCTAssertEqual(mock.requests.last?.httpMethod, "DELETE")
         XCTAssertEqual(mock.requests.last?.url?.path, "/api/lists/1")
     }
+    
+    func testReorderListsSendsPutWithIDs() async throws {
+        let mock = MockURLSession()
+        mock.enqueue(data: #"{"token":"fake-token"}"#.data(using: .utf8)!)
+        mock.enqueue(data: Data(), statusCode: 204)
+
+        let client = APIClient(session: mock)
+        _ = try await client.login(username: "renan", password: "senha123")
+        try await client.reorderLists(ids: [3, 1, 2])
+
+        let request = mock.requests.last
+        XCTAssertEqual(request?.httpMethod, "PUT")
+        XCTAssertEqual(request?.url?.path, "/api/lists/reorder")
+
+        let decoded = try JSONDecoder().decode(ReorderInput.self, from: request!.httpBody!)
+        XCTAssertEqual(decoded.ids, [3, 1, 2])
+    }
 }

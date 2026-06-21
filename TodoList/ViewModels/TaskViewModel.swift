@@ -7,6 +7,7 @@
 
 import Foundation
 import Observation
+import SwiftUI
 
 @MainActor
 @Observable
@@ -141,6 +142,45 @@ final class TaskViewModel {
         }
     }
     
+    func moveLists(fromID: Int, toID: Int) {
+        guard let fromIndex = taskLists.firstIndex(where: { $0.id == fromID }),
+              let toIndex = taskLists.firstIndex(where: { $0.id == toID }),
+              fromIndex != toIndex else { return }
+
+        taskLists.move(
+            fromOffsets: IndexSet(integer: fromIndex),
+            toOffset: toIndex > fromIndex ? toIndex + 1 : toIndex
+        )
+    }
+
+    func persistListOrder() async {
+        do {
+            try await apiClient.reorderLists(ids: taskLists.map(\.id))
+        } catch {
+            errorMessage = message(for: error)
+        }
+    }
+
+    func moveItems(in list: TaskList, fromID: Int, toID: Int) {
+        guard let listIndex = taskLists.firstIndex(where: { $0.id == list.id }),
+              let fromIndex = taskLists[listIndex].items.firstIndex(where: { $0.id == fromID }),
+              let toIndex = taskLists[listIndex].items.firstIndex(where: { $0.id == toID }),
+              fromIndex != toIndex else { return }
+
+        taskLists[listIndex].items.move(
+            fromOffsets: IndexSet(integer: fromIndex),
+            toOffset: toIndex > fromIndex ? toIndex + 1 : toIndex
+        )
+    }
+
+    func persistItemOrder(for list: TaskList) async {
+        guard let current = taskLists.first(where: { $0.id == list.id }) else { return }
+        do {
+            try await apiClient.reorderItems(listID: list.id, ids: current.items.map(\.id))
+        } catch {
+            errorMessage = message(for: error)
+        }
+    }
     
     private func message(for error: Error) -> String {
         (error as? APIError)?.userMessage ?? error.localizedDescription

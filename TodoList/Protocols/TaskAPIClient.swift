@@ -15,4 +15,6 @@ protocol TaskAPIClient {
     func addItem(listID: Int, text: String) async throws -> TaskItem
     func updateItem(listID: Int, itemID: Int, text: String, completed: Bool) async throws -> TaskItem
     func deleteItem(listID: Int, itemID: Int) async throws
+    func reorderLists(ids: [Int]) async throws
+    func reorderItems(listID: Int, ids: [Int]) async throws
 }

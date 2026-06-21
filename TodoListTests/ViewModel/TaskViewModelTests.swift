@@ -22,6 +22,16 @@ final class MockTaskAPIClient: TaskAPIClient {
     private(set) var lastDeleteItemInput: (listID: Int, itemID: Int)?
     private(set) var fetchListsCallCount = 0
     private(set) var lastFetchListsSearch: String?
+    private(set) var reorderListsIDs: [Int]?
+    private(set) var reorderItemsInput: (listID: Int, ids: [Int])?
+
+    func reorderLists(ids: [Int]) async throws {
+        reorderListsIDs = ids
+    }
+
+    func reorderItems(listID: Int, ids: [Int]) async throws {
+        reorderItemsInput = (listID, ids)
+    }
 
     func fetchLists(search: String, page: Int, limit: Int) async throws -> TaskListResponse {
         fetchListsCallCount += 1

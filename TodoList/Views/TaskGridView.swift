@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct TaskGridView: View {
     let authViewModel: AuthViewModel
@@ -16,6 +17,7 @@ struct TaskGridView: View {
     @State private var isShowingSettings = false
     @State private var newListTitle = ""
     @State private var selectedList: TaskList?
+    @State private var draggingListID: Int?
 
     private let columns = [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)]
 
@@ -54,6 +56,11 @@ struct TaskGridView: View {
                                 } onDelete: {
                                     Task { await taskViewModel.deleteList(list) }
                                 }
+                                .onDrag {
+                                    draggingListID = list.id
+                                    return NSItemProvider(object: String(list.id) as NSString)
+                                }
+                                .onDrop(of: [.text], delegate: TaskListDropDelegate(item: list, draggingListID: $draggingListID, taskViewModel: taskViewModel))
                             }
                         }
                         .padding(16)

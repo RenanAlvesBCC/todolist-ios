@@ -89,6 +89,14 @@ final class APIClient {
         let request = try makeRequest(url: baseURL.appendingPathComponent("/api/lists/\(listID)/items/\(itemID)"), method: "DELETE", authenticated: true)
         try await performNoContent(request)
     }
+    
+    func reorderLists(ids: [Int]) async throws {
+        try await sendNoContent(method: "PUT", path: "/api/lists/reorder", body: ReorderInput(ids: ids), authenticated: true)
+    }
+
+    func reorderItems(listID: Int, ids: [Int]) async throws {
+        try await sendNoContent(method: "PUT", path: "/api/lists/\(listID)/items/reorder", body: ReorderInput(ids: ids), authenticated: true)
+    }
 
     // MARK: - Núcleo privado
 
@@ -140,6 +148,18 @@ final class APIClient {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(body)
         return try await perform(request)
+    }
+    
+    private func sendNoContent<Body: Encodable>(
+        method: String,
+        path: String,
+        body: Body,
+        authenticated: Bool = false
+    ) async throws {
+        var request = try makeRequest(url: baseURL.appendingPathComponent(path), method: method, authenticated: authenticated)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(body)
+        try await performNoContent(request)
     }
 }
 

@@ -4,7 +4,6 @@
 //
 //  Created by Renan Alves on 19/06/26.
 //
-
 import SwiftUI
 
 struct TaskDetailView: View {
@@ -12,15 +11,22 @@ struct TaskDetailView: View {
     let list: TaskList
 
     @Environment(\.appTheme) private var theme
+    @Environment(\.fontResolutionContext) private var fontResolutionContext
     @State private var title: String
-    @State private var newItemText = ""
+    @State private var newItemText = AttributedString()
+    @State private var newItemSelection = AttributedTextSelection()
     @State private var editingItemID: Int?
-    @State private var editingText = ""
+    @State private var editingText = AttributedString()
+    @State private var editingSelection = AttributedTextSelection()
     @FocusState private var focusedField: Field?
 
     private enum Field: Hashable {
         case newItem
         case editingItem
+    }
+
+    private enum FormattingTrait {
+        case bold, italic
     }
 
     init(taskViewModel: TaskViewModel, list: TaskList) {
@@ -56,12 +62,21 @@ struct TaskDetailView: View {
                             }
 
                             if editingItemID == item.id {
-                                TextField("Item", text: $editingText)
-                                    .font(.system(size: 14))
-                                    .foregroundStyle(theme.text)
-                                    .focused($focusedField, equals: .editingItem)
-                                    .submitLabel(.done)
-                                    .onSubmit { saveEditingItem() }
+                                RichTextField(
+                                    text: $editingText,
+                                    selection: $editingSelection,
+                                    isFocused: Binding(
+                                        get: { focusedField == .editingItem },
+                                        set: { newValue in
+                                            if newValue {
+                                                focusedField = .editingItem
+                                            } else if focusedField == .editingItem {
+                                                focusedField = nil
+                                            }
+                                        }
+                                    )
+                                )
+                                .frame(minHeight: 30)
                             } else {
                                 Text.markdown(item.text)
                                     .font(.system(size: 14))
@@ -69,7 +84,8 @@ struct TaskDetailView: View {
                                     .strikethrough(item.completed)
                                     .onTapGesture {
                                         editingItemID = item.id
-                                        editingText = item.text
+                                        editingText = AttributedString(storedMarkdown: item.text)
+                                        editingSelection = AttributedTextSelection()
                                         focusedField = .editingItem
                                     }
                             }
@@ -89,15 +105,25 @@ struct TaskDetailView: View {
                 .padding(18)
             }
 
-            HStack(spacing: 10) {
-                TextField("Novo item", text: $newItemText)
-                    .foregroundStyle(theme.text)
-                    .padding(10)
-                    .background(theme.card)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .focused($focusedField, equals: .newItem)
-                    .submitLabel(.done)
-                    .onSubmit(addItem)
+            HStack(alignment: .top, spacing: 10) {
+                RichTextField(
+                    text: $newItemText,
+                    selection: $newItemSelection,
+                    isFocused: Binding(
+                        get: { focusedField == .newItem },
+                        set: { newValue in
+                            if newValue {
+                                focusedField = .newItem
+                            } else if focusedField == .newItem {
+                                focusedField = nil
+                            }
+                        }
+                    )
+                )
+                .frame(minHeight: 36, maxHeight: 80)
+                .padding(6)
+                .background(theme.card)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
 
                 Button(action: addItem) {
                     Image(systemName: "plus")
@@ -116,12 +142,12 @@ struct TaskDetailView: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Button {
-                    applyFormatting(marker: "**")
+                    applyFormatting(.bold)
                 } label: {
                     Image(systemName: "bold")
                 }
                 Button {
-                    applyFormatting(marker: "*")
+                    applyFormatting(.italic)
                 } label: {
                     Image(systemName: "italic")
                 }
@@ -144,26 +170,41 @@ struct TaskDetailView: View {
     }
 
     private func addItem() {
-        guard !newItemText.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-        let text = newItemText
-        newItemText = ""
+        let text = newItemText.storedMarkdown(in: fontResolutionContext)
+        guard !text.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+        newItemText = AttributedString()
+        newItemSelection = AttributedTextSelection()
         Task { await taskViewModel.addItem(text: text, to: currentList) }
     }
 
     private func saveEditingItem() {
         guard let id = editingItemID, let item = currentList.items.first(where: { $0.id == id }) else { return }
         editingItemID = nil
-        Task { await taskViewModel.updateItem(item, in: currentList, text: editingText, completed: item.completed) }
+        let text = editingText.storedMarkdown(in: fontResolutionContext)
+        Task { await taskViewModel.updateItem(item, in: currentList, text: text, completed: item.completed) }
     }
 
-    private func applyFormatting(marker: String) {
+    private func applyFormatting(_ trait: FormattingTrait) {
         switch focusedField {
         case .newItem:
-            newItemText = MarkdownFormatting.toggling(newItemText, marker: marker)
+            apply(trait, to: &newItemText, selection: &newItemSelection)
         case .editingItem:
-            editingText = MarkdownFormatting.toggling(editingText, marker: marker)
+            apply(trait, to: &editingText, selection: &editingSelection)
         case nil:
             break
+        }
+    }
+
+    private func apply(_ trait: FormattingTrait, to text: inout AttributedString, selection: inout AttributedTextSelection) {
+        text.transformAttributes(in: &selection) { container in
+            let currentFont = container.font ?? .default
+            let resolved = currentFont.resolve(in: fontResolutionContext)
+            switch trait {
+            case .bold:
+                container.font = currentFont.bold(!resolved.isBold)
+            case .italic:
+                container.font = currentFont.italic(!resolved.isItalic)
+            }
         }
     }
 }

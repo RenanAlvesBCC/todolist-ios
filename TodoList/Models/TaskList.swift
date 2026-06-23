@@ -13,6 +13,7 @@ struct TaskList: Codable, Identifiable, Equatable, Hashable {
     let updatedAt: Date
     var title: String
     let userID: Int
+    var position: Int
     var items: [TaskItem]
 
     enum CodingKeys: String, CodingKey {
@@ -21,6 +22,7 @@ struct TaskList: Codable, Identifiable, Equatable, Hashable {
         case updatedAt = "UpdatedAt"
         case title
         case userID = "user_id"
+        case position
         case items
     }
 }

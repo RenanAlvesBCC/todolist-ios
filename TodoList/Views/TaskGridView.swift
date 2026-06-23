@@ -92,6 +92,13 @@ struct TaskGridView: View {
                             .foregroundStyle(theme.textSecondary)
                     }
                 }
+                ToolbarItem(placement: .topBarLeading) {
+                    if taskViewModel.hasPendingSync {
+                        Image(systemName: "arrow.triangle.2.circlepath")
+                            .foregroundStyle(theme.textSecondary)
+                            .symbolEffect(.rotate, isActive: true)
+                    }
+                }
             }
             .sheet(isPresented: $isShowingSettings) {
                 SettingsView(authViewModel: authViewModel)

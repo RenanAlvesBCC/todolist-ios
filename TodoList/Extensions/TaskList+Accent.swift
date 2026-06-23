@@ -9,6 +9,6 @@ import SwiftUI
 
 extension TaskList {
     var accentColor: Color {
-        Color.appAccents[id % Color.appAccents.count]
+        Color.appAccents[abs(id) % Color.appAccents.count]
     }
 }

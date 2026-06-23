@@ -22,4 +22,8 @@ enum L10n {
         static let fetchFailed = String(localized: "error.fetch_failed")
         static let listNotFound = String(localized: "error.list_not_found")
     }
+    enum Biometric {
+        static let reason = String(localized: "biometric.reason")
+        static let fallback = String(localized: "biometric.fallback")
+    }
 }

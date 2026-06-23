@@ -28,6 +28,9 @@ struct TodoListApp: App {
             ContentView(authViewModel: authViewModel, taskViewModel: taskViewModel)
                 .environment(\.appTheme, selectedTheme)
                 .preferredColorScheme(selectedTheme.colorScheme)
+                .task {
+                    await authViewModel.attemptBiometricLogin()
+                }
         }
     }
 }

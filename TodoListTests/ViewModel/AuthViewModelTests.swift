@@ -13,6 +13,16 @@ final class MockAuthAPIClient: AuthAPIClient {
     var loginResult: Result<LoginResponse, Error> = .success(LoginResponse(token: "fake-token"))
     private(set) var registerCallCount = 0
     private(set) var loginCallCount = 0
+    private(set) var restoredToken: String?
+    private(set) var logoutCallCount = 0
+
+    func restoreToken(_ token: String) {
+        restoredToken = token
+    }
+
+    func logout() {
+        logoutCallCount += 1
+    }
 
     func register(username: String, password: String) async throws -> MessageResponse {
         registerCallCount += 1
@@ -104,5 +114,94 @@ final class AuthViewModelTests: XCTestCase {
         XCTAssertEqual(mock.loginCallCount, 0)
         XCTAssertEqual(viewModel.errorMessage, "usuário já existe")
         XCTAssertEqual(viewModel.state, .signedOut)
+    }
+    
+    func testAttemptBiometricLoginRestoresTokenAndSignsIn() async {
+        let mockAPI = MockAuthAPIClient()
+        let mockKeychain = MockKeychainService()
+        mockKeychain.savedToken = "saved-token"
+        let mockBiometric = MockBiometricService()
+
+        let viewModel = AuthViewModel(
+            apiClient: mockAPI,
+            keychainService: mockKeychain,
+            biometricService: mockBiometric
+        )
+
+        await viewModel.attemptBiometricLogin()
+
+        XCTAssertEqual(viewModel.state, .signedIn)
+        XCTAssertEqual(mockAPI.restoredToken, "saved-token")
+    }
+
+    func testAttemptBiometricLoginDoesNothingWhenNoTokenSaved() async {
+        let mockAPI = MockAuthAPIClient()
+        let mockKeychain = MockKeychainService()
+        let mockBiometric = MockBiometricService()
+
+        let viewModel = AuthViewModel(
+            apiClient: mockAPI,
+            keychainService: mockKeychain,
+            biometricService: mockBiometric
+        )
+
+        await viewModel.attemptBiometricLogin()
+
+        XCTAssertEqual(viewModel.state, .signedOut)
+        XCTAssertNil(mockAPI.restoredToken)
+    }
+
+    func testAttemptBiometricLoginKeepsSignedOutWhenBiometricFails() async {
+        let mockAPI = MockAuthAPIClient()
+        let mockKeychain = MockKeychainService()
+        mockKeychain.savedToken = "saved-token"
+        let mockBiometric = MockBiometricService()
+        mockBiometric.authenticationResult = .success(false)
+
+        let viewModel = AuthViewModel(
+            apiClient: mockAPI,
+            keychainService: mockKeychain,
+            biometricService: mockBiometric
+        )
+
+        await viewModel.attemptBiometricLogin()
+
+        XCTAssertEqual(viewModel.state, .signedOut)
+    }
+
+    func testLoginSavesTokenToKeychain() async {
+        let mockAPI = MockAuthAPIClient()
+        let mockKeychain = MockKeychainService()
+        let mockBiometric = MockBiometricService()
+
+        let viewModel = AuthViewModel(
+            apiClient: mockAPI,
+            keychainService: mockKeychain,
+            biometricService: mockBiometric
+        )
+
+        await viewModel.login(username: "renan", password: "senha123")
+
+        XCTAssertEqual(mockKeychain.savedToken, "eyJhbGciOiJIUzI1NiIs...")
+    }
+
+    func testLogoutClearsKeychainAndSignsOut() async {
+        let mockAPI = MockAuthAPIClient()
+        let mockKeychain = MockKeychainService()
+        mockKeychain.savedToken = "token-salvo"
+        let mockBiometric = MockBiometricService()
+
+        let viewModel = AuthViewModel(
+            apiClient: mockAPI,
+            keychainService: mockKeychain,
+            biometricService: mockBiometric
+        )
+        await viewModel.login(username: "renan", password: "senha123")
+
+        viewModel.logout()
+
+        XCTAssertEqual(viewModel.state, .signedOut)
+        XCTAssertNil(mockKeychain.savedToken)
+        XCTAssertEqual(mockAPI.logoutCallCount, 1)
     }
 }

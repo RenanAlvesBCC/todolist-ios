@@ -10,6 +10,7 @@ import Observation
 
 enum AuthState: Equatable {
     case signedOut
+    case authenticating
     case signedIn
 }
 
@@ -21,17 +22,45 @@ final class AuthViewModel {
     var errorMessage: String?
 
     private let apiClient: AuthAPIClient
+    private let keychainService: KeychainServiceProtocol
+    private let biometricService: BiometricServiceProtocol
 
-    init(apiClient: AuthAPIClient = APIClient()) {
+    init(
+        apiClient: AuthAPIClient = APIClient(),
+        keychainService: KeychainServiceProtocol = KeychainService(),
+        biometricService: BiometricServiceProtocol = BiometricService()
+    ) {
         self.apiClient = apiClient
+        self.keychainService = keychainService
+        self.biometricService = biometricService
     }
 
-    func registerAndLogin(username: String, password: String) async {
-        await register(username: username, password: password)
-        guard errorMessage == nil else { return }
-        await login(username: username, password: password)
+    // MARK: - Biometric
+
+    func attemptBiometricLogin() async {
+        guard biometricService.isAvailable,
+              let token = try? keychainService.loadToken() else {
+            return
+        }
+
+        state = .authenticating
+
+        do {
+            let success = try await biometricService.authenticate(reason: L10n.Biometric.reason)
+            if success {
+                apiClient.restoreToken(token)
+                state = .signedIn
+            } else {
+                state = .signedOut
+            }
+        } catch {
+            // Usuário cancelou ou biometria falhou — volta pro login silenciosamente
+            state = .signedOut
+        }
     }
-    
+
+    // MARK: - Auth
+
     func register(username: String, password: String) async {
         guard validate(username: username, password: password) else { return }
 
@@ -54,7 +83,8 @@ final class AuthViewModel {
         errorMessage = nil
 
         do {
-            _ = try await apiClient.login(username: username, password: password)
+            let response = try await apiClient.login(username: username, password: password)
+            try? keychainService.save(token: response.token)
             state = .signedIn
         } catch {
             errorMessage = message(for: error)
@@ -63,9 +93,19 @@ final class AuthViewModel {
         isLoading = false
     }
 
+    func registerAndLogin(username: String, password: String) async {
+        await register(username: username, password: password)
+        guard errorMessage == nil else { return }
+        await login(username: username, password: password)
+    }
+
     func logout() {
+        apiClient.logout()
+        keychainService.deleteToken()
         state = .signedOut
     }
+
+    // MARK: - Helpers
 
     private func validate(username: String, password: String) -> Bool {
         guard !username.trimmingCharacters(in: .whitespaces).isEmpty, !password.isEmpty else {
@@ -76,14 +116,6 @@ final class AuthViewModel {
     }
 
     private func message(for error: Error) -> String {
-        guard let apiError = error as? APIError else {
-            return error.localizedDescription
-        }
-        switch apiError {
-        case .server(let message): return message
-        case .invalidResponse: return L10n.Error.serverUnavailable
-        case .decoding: return L10n.Error.unexpectedResponse
-        case .notAuthenticated: return L10n.Error.sessionExpired
-        }
+        (error as? APIError)?.userMessage ?? error.localizedDescription
     }
 }

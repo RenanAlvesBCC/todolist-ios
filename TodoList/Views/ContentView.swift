@@ -4,7 +4,6 @@
 //
 //  Created by Renan Alves on 19/06/26.
 //
-
 import SwiftUI
 
 struct ContentView: View {
@@ -15,6 +14,8 @@ struct ContentView: View {
         switch authViewModel.state {
         case .signedOut:
             LoginView(viewModel: authViewModel)
+        case .authenticating:
+            BiometricAuthView()
         case .signedIn:
             TaskGridView(authViewModel: authViewModel, taskViewModel: taskViewModel)
         }
@@ -23,5 +24,8 @@ struct ContentView: View {
 
 #Preview {
     let client = APIClient()
-    return ContentView(authViewModel: AuthViewModel(apiClient: client), taskViewModel: TaskViewModel(apiClient: client))
+    return ContentView(
+        authViewModel: AuthViewModel(apiClient: client),
+        taskViewModel: TaskViewModel(apiClient: client)
+    )
 }

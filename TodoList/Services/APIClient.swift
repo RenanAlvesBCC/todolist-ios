@@ -32,6 +32,10 @@ final class APIClient {
     }
 
     // MARK: - Autenticação
+    
+    func restoreToken(_ token: String) {
+        self.token = token
+    }
 
     func register(username: String, password: String) async throws -> MessageResponse {
         try await send(method: "POST", path: "/register", body: Credentials(username: username, password: password))

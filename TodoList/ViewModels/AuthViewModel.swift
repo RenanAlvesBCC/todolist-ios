@@ -69,13 +69,21 @@ final class AuthViewModel {
 
     private func validate(username: String, password: String) -> Bool {
         guard !username.trimmingCharacters(in: .whitespaces).isEmpty, !password.isEmpty else {
-            errorMessage = "Preencha usuário e senha"
+            errorMessage = L10n.Auth.fillCredentials
             return false
         }
         return true
     }
 
     private func message(for error: Error) -> String {
-        (error as? APIError)?.userMessage ?? error.localizedDescription
+        guard let apiError = error as? APIError else {
+            return error.localizedDescription
+        }
+        switch apiError {
+        case .server(let message): return message
+        case .invalidResponse: return L10n.Error.serverUnavailable
+        case .decoding: return L10n.Error.unexpectedResponse
+        case .notAuthenticated: return L10n.Error.sessionExpired
+        }
     }
 }

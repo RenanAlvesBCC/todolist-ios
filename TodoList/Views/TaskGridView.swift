@@ -42,7 +42,7 @@ struct TaskGridView: View {
                         Image(systemName: taskViewModel.searchText.isEmpty ? "checklist" : "magnifyingglass")
                             .font(.system(size: 32))
                             .foregroundStyle(theme.textSecondary)
-                        Text(taskViewModel.searchText.isEmpty ? "Nenhuma lista ainda" : "Nenhuma lista encontrada")
+                        Text(taskViewModel.searchText.isEmpty ? "lists.empty.title" : "lists.empty.no_results")
                             .font(.subheadline)
                             .foregroundStyle(theme.textSecondary)
                     }
@@ -81,7 +81,7 @@ struct TaskGridView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(theme.background)
-            .navigationTitle("To-do list")
+            .navigationTitle(Text("app.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -96,10 +96,10 @@ struct TaskGridView: View {
             .sheet(isPresented: $isShowingSettings) {
                 SettingsView(authViewModel: authViewModel)
             }
-            .alert("Nova lista", isPresented: $isShowingAddList) {
-                TextField("Título", text: $newListTitle)
-                Button("Cancelar", role: .cancel) { newListTitle = "" }
-                Button("Criar") {
+            .alert(Text("lists.alert.new_list.title"), isPresented: $isShowingAddList) {
+                TextField("common.placeholder.title", text: $newListTitle)
+                Button("common.action.cancel", role: .cancel) { newListTitle = "" }
+                Button("common.action.create") {
                     Task {
                         await taskViewModel.addList(title: newListTitle)
                         newListTitle = ""
@@ -115,7 +115,7 @@ struct TaskGridView: View {
             .searchable(text: Binding(
                 get: { taskViewModel.searchText },
                 set: { taskViewModel.searchText = $0 }
-            ), prompt: "Buscar listas")
+            ), prompt: Text("lists.search.prompt"))
         }
     }
 }

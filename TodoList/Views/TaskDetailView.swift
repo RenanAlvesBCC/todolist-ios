@@ -43,7 +43,7 @@ struct TaskDetailView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            TextField("Título", text: $title)
+            TextField("common.placeholder.title", text: $title)
                 .font(.system(size: 20, weight: .bold, design: .rounded))
                 .foregroundStyle(theme.text)
                 .padding(.horizontal, 18)
@@ -163,7 +163,7 @@ struct TaskDetailView: View {
                     Image(systemName: "italic")
                 }
                 Spacer()
-                Button("OK") {
+                Button("common.action.ok") {
                     focusedField = nil
                 }
             }

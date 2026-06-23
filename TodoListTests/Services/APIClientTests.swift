@@ -156,4 +156,48 @@ final class APIClientTests: XCTestCase {
         let decoded = try JSONDecoder().decode(ReorderInput.self, from: request!.httpBody!)
         XCTAssertEqual(decoded.ids, [3, 1, 2])
     }
+    
+    func testReorderItemsSendsPutToCorrectPath() async throws {
+        let mock = MockURLSession()
+        mock.enqueue(data: #"{"token":"fake-token"}"#.data(using: .utf8)!)
+        mock.enqueue(data: Data(), statusCode: 204)
+
+        let client = APIClient(session: mock)
+        _ = try await client.login(username: "renan", password: "senha123")
+        try await client.reorderItems(listID: 5, ids: [2, 1])
+
+        XCTAssertEqual(mock.requests.last?.httpMethod, "PUT")
+        XCTAssertEqual(mock.requests.last?.url?.path, "/api/lists/5/items/reorder")
+
+        let decoded = try JSONDecoder().decode(ReorderInput.self, from: mock.requests.last!.httpBody!)
+        XCTAssertEqual(decoded.ids, [2, 1])
+    }
+
+    func testUpdateListSendsPutWithTitle() async throws {
+        let mock = MockURLSession()
+        mock.enqueue(data: #"{"token":"fake-token"}"#.data(using: .utf8)!)
+        mock.enqueue(data: #"{"ID":1,"CreatedAt":"2026-06-18T10:00:00Z","UpdatedAt":"2026-06-18T10:00:00Z","title":"Novo título","user_id":1,"items":[]}"#.data(using: .utf8)!)
+
+        let client = APIClient(session: mock)
+        _ = try await client.login(username: "renan", password: "senha123")
+        let list = try await client.updateList(id: 1, title: "Novo título")
+
+        XCTAssertEqual(list.title, "Novo título")
+        XCTAssertEqual(mock.requests.last?.httpMethod, "PUT")
+        XCTAssertEqual(mock.requests.last?.url?.path, "/api/lists/1")
+    }
+
+    func testUpdateItemSendsPutToCorrectPath() async throws {
+        let mock = MockURLSession()
+        mock.enqueue(data: #"{"token":"fake-token"}"#.data(using: .utf8)!)
+        mock.enqueue(data: #"{"ID":10,"CreatedAt":"2026-06-18T10:05:00Z","UpdatedAt":"2026-06-18T10:05:00Z","text":"Leite desnatado","completed":true,"task_list_id":1}"#.data(using: .utf8)!)
+
+        let client = APIClient(session: mock)
+        _ = try await client.login(username: "renan", password: "senha123")
+        let item = try await client.updateItem(listID: 1, itemID: 10, text: "Leite desnatado", completed: true)
+
+        XCTAssertEqual(item.text, "Leite desnatado")
+        XCTAssertTrue(item.completed)
+        XCTAssertEqual(mock.requests.last?.url?.path, "/api/lists/1/items/10")
+    }
 }

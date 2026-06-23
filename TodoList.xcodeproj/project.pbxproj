@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		59D778FB2FEAEDDF00C085F7 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 59D778FA2FEAEDDF00C085F7 /* Localizable.xcstrings */; };
+		59D778FC2FEAEDDF00C085F7 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 59D778FA2FEAEDDF00C085F7 /* Localizable.xcstrings */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		594B70F62FE5911A00621F6E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,18 +32,8 @@
 		594B70E82FE5911900621F6E /* TodoList.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TodoList.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		594B70F52FE5911A00621F6E /* TodoListTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TodoListTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		594B70FF2FE5911A00621F6E /* TodoListUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TodoListUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		59D778FA2FEAEDDF00C085F7 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		59D778E72FE83C3500C085F7 /* Exceptions for "TodoList" folder in "TodoListTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"Extensions/Color+Accents.swift",
-				Views/TaskDetailView.swift,
-			);
-			target = 594B70F42FE5911A00621F6E /* TodoListTests */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		594B70F82FE5911A00621F6E /* TodoListTests */ = {
@@ -53,9 +48,6 @@
 		};
 		59D7781B2FE5922F00C085F7 /* TodoList */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				59D778E72FE83C3500C085F7 /* Exceptions for "TodoList" folder in "TodoListTests" target */,
-			);
 			path = TodoList;
 			sourceTree = "<group>";
 		};
@@ -89,6 +81,7 @@
 		594B70DF2FE5911900621F6E = {
 			isa = PBXGroup;
 			children = (
+				59D778FA2FEAEDDF00C085F7 /* Localizable.xcstrings */,
 				59D7781B2FE5922F00C085F7 /* TodoList */,
 				594B70F82FE5911A00621F6E /* TodoListTests */,
 				594B71022FE5911A00621F6E /* TodoListUITests */,
@@ -146,7 +139,6 @@
 			);
 			fileSystemSynchronizedGroups = (
 				594B70F82FE5911A00621F6E /* TodoListTests */,
-				59D7781B2FE5922F00C085F7 /* TodoList */,
 			);
 			name = TodoListTests;
 			packageProductDependencies = (
@@ -206,7 +198,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
-				Base,
+				"pt-BR",
 			);
 			mainGroup = 594B70DF2FE5911900621F6E;
 			minimizedProjectReferenceProxies = 1;
@@ -227,6 +219,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				59D778FB2FEAEDDF00C085F7 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -234,6 +227,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				59D778FC2FEAEDDF00C085F7 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -343,6 +337,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -399,6 +394,7 @@
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;

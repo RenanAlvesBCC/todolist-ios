@@ -33,13 +33,13 @@ struct LoginView: View {
                     .font(.system(size: 22, weight: .bold, design: .rounded))
                     .foregroundStyle(theme.text)
 
-                Text(isRegisterMode ? "Crie sua conta" : "Entre na sua conta")
+                Text(isRegisterMode ? "auth.tagline.register" : "auth.tagline.signin")
                     .font(.subheadline)
                     .foregroundStyle(theme.textSecondary)
             }
 
             VStack(spacing: 12) {
-                TextField("Usuário", text: $username)
+                TextField("auth.placeholder.username", text: $username)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .padding(14)
@@ -47,7 +47,7 @@ struct LoginView: View {
                     .foregroundStyle(theme.text)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
 
-                SecureField("Senha", text: $password)
+                SecureField("auth.placeholder.password", text: $password)
                     .padding(14)
                     .background(theme.card)
                     .foregroundStyle(theme.text)
@@ -69,7 +69,7 @@ struct LoginView: View {
                         ProgressView()
                             .tint(theme.background)
                     } else {
-                        Text(isRegisterMode ? "Criar conta" : "Entrar")
+                        Text(isRegisterMode ? "auth.action.register" : "auth.action.signin")
                             .fontWeight(.medium)
                     }
                 }
@@ -85,7 +85,7 @@ struct LoginView: View {
                 isRegisterMode.toggle()
                 viewModel.errorMessage = nil
             } label: {
-                Text(isRegisterMode ? "Já tem conta? Entrar" : "Não tem conta? Criar conta")
+                Text(isRegisterMode ? "auth.switch.to_signin" : "auth.switch.to_register")
                     .font(.footnote)
                     .foregroundStyle(theme.textSecondary)
             }

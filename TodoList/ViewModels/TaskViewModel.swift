@@ -47,10 +47,10 @@ final class TaskViewModel {
 
         isLoading = false
     }
-
+    
     func addList(title: String) async {
         guard !title.trimmingCharacters(in: .whitespaces).isEmpty else {
-            errorMessage = "O título é obrigatório"
+            errorMessage = L10n.Error.titleRequired
             return
         }
 
@@ -77,7 +77,7 @@ final class TaskViewModel {
 
     func addItem(text: String, to list: TaskList) async {
         guard !text.trimmingCharacters(in: .whitespaces).isEmpty else {
-            errorMessage = "O texto do item é obrigatório"
+            errorMessage = L10n.Error.itemTextRequired
             return
         }
 
@@ -181,7 +181,7 @@ final class TaskViewModel {
             errorMessage = message(for: error)
         }
     }
-    
+
     private func message(for error: Error) -> String {
         (error as? APIError)?.userMessage ?? error.localizedDescription
     }

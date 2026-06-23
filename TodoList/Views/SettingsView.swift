@@ -18,7 +18,7 @@ struct SettingsView: View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 28) {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Tema")
+                    Text("settings.section.theme")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(theme.textSecondary)
 
@@ -44,7 +44,7 @@ struct SettingsView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Conta")
+                    Text("settings.section.account")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(theme.textSecondary)
 
@@ -52,13 +52,13 @@ struct SettingsView: View {
                         authViewModel.logout()
                         dismiss()
                     } label: {
-                        Text("Sair")
+                        Text("settings.action.signout")
                             .fontWeight(.medium)
                             .frame(maxWidth: .infinity)
                             .padding(12)
                     }
                     .background(theme.card)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Color.appDestructive)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
 
@@ -67,11 +67,11 @@ struct SettingsView: View {
             .padding(20)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(theme.background)
-            .navigationTitle("Configurações")
+            .navigationTitle(Text("settings.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Pronto") { dismiss() }
+                    Button("common.action.done") { dismiss() }
                 }
             }
         }

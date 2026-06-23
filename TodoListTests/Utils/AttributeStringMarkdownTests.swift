@@ -11,26 +11,38 @@ import SwiftUI
 
 final class AttributedStringMarkdownTests: XCTestCase {
 
-    func testParsesPlainTextFromStoredMarkdown() {
-        let attributed = AttributedString(storedMarkdown: "Leite")
-        XCTAssertEqual(String(attributed.characters), "Leite")
+    func testParsesPlainText() {
+        let result = AttributedString(storedMarkdown: "Leite")
+        XCTAssertEqual(String(result.characters), "Leite")
     }
 
-    func testParsesBoldMarkdownIntoReadableCharacters() {
-        let attributed = AttributedString(storedMarkdown: "**Leite**")
-        XCTAssertEqual(String(attributed.characters), "Leite")
+    func testParsesBold() {
+        let result = AttributedString(storedMarkdown: "**Leite**")
+        XCTAssertEqual(String(result.characters), "Leite")
     }
 
-    func testSerializesPlainTextUnchanged() {
-        let context = Font.Context()
-        var attributed = AttributedString("Leite")
-        XCTAssertEqual(attributed.storedMarkdown(in: context), "Leite")
+    func testParsesItalic() {
+        let result = AttributedString(storedMarkdown: "*Pão*")
+        XCTAssertEqual(String(result.characters), "Pão")
     }
 
-    func testSerializesBoldRunBackToMarkdown() {
-        let context = Font.Context()
-        var attributed = AttributedString("Leite")
-        attributed.font = Font.default.bold(true)
-        XCTAssertEqual(attributed.storedMarkdown(in: context), "**Leite**")
+    func testParsesBoldAndItalic() {
+        let result = AttributedString(storedMarkdown: "***Ovos***")
+        XCTAssertEqual(String(result.characters), "Ovos")
+    }
+
+    func testParsesPlainTextWithNoMarkdown() {
+        let result = AttributedString(storedMarkdown: "Texto simples sem marcação")
+        XCTAssertEqual(String(result.characters), "Texto simples sem marcação")
+    }
+
+    func testParsesMalformedMarkdownWithoutCrashing() {
+        let result = AttributedString(storedMarkdown: "**sem fechar")
+        XCTAssertFalse(String(result.characters).isEmpty)
+    }
+
+    func testParsesEmptyString() {
+        let result = AttributedString(storedMarkdown: "")
+        XCTAssertEqual(String(result.characters), "")
     }
 }

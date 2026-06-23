@@ -15,13 +15,17 @@ enum APIError: Error, Equatable {
 }
 
 final class APIClient {
-    private let baseURL: URL
+    private var defaultBase: URL {
+        #if DEBUG
+        return URL(string: "http://localhost:8080")!
+        #else
+        return URL(string: "https://todolist-api-tq9d.onrender.com")!
+        #endif
+    }
     private let session: URLSessionProtocol
     private(set) var token: String?
 
-    init(baseURL: URL = URL(string: "http://localhost:8080")!,
-         session: URLSessionProtocol = URLSession.shared) {
-        self.baseURL = baseURL
+    init(session: URLSessionProtocol = URLSession.shared) {
         self.session = session
     }
 
@@ -54,7 +58,7 @@ final class APIClient {
     // MARK: - Listas e itens
 
     func fetchLists(search: String, page: Int, limit: Int) async throws -> TaskListResponse {
-        var components = URLComponents(url: baseURL.appendingPathComponent("/api/lists"), resolvingAgainstBaseURL: false)!
+        var components = URLComponents(url: defaultBase.appendingPathComponent("/api/lists"), resolvingAgainstBaseURL: false)!
         var queryItems = [
             URLQueryItem(name: "page", value: String(page)),
             URLQueryItem(name: "limit", value: String(limit))
@@ -77,7 +81,7 @@ final class APIClient {
     }
 
     func deleteList(id: Int) async throws {
-        let request = try makeRequest(url: baseURL.appendingPathComponent("/api/lists/\(id)"), method: "DELETE", authenticated: true)
+        let request = try makeRequest(url: defaultBase.appendingPathComponent("/api/lists/\(id)"), method: "DELETE", authenticated: true)
         try await performNoContent(request)
     }
 
@@ -90,7 +94,7 @@ final class APIClient {
     }
 
     func deleteItem(listID: Int, itemID: Int) async throws {
-        let request = try makeRequest(url: baseURL.appendingPathComponent("/api/lists/\(listID)/items/\(itemID)"), method: "DELETE", authenticated: true)
+        let request = try makeRequest(url: defaultBase.appendingPathComponent("/api/lists/\(listID)/items/\(itemID)"), method: "DELETE", authenticated: true)
         try await performNoContent(request)
     }
     
@@ -148,7 +152,7 @@ final class APIClient {
         body: Body,
         authenticated: Bool = false
     ) async throws -> Response {
-        var request = try makeRequest(url: baseURL.appendingPathComponent(path), method: method, authenticated: authenticated)
+        var request = try makeRequest(url: defaultBase.appendingPathComponent(path), method: method, authenticated: authenticated)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(body)
         return try await perform(request)
@@ -160,7 +164,7 @@ final class APIClient {
         body: Body,
         authenticated: Bool = false
     ) async throws {
-        var request = try makeRequest(url: baseURL.appendingPathComponent(path), method: method, authenticated: authenticated)
+        var request = try makeRequest(url: defaultBase.appendingPathComponent(path), method: method, authenticated: authenticated)
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(body)
         try await performNoContent(request)

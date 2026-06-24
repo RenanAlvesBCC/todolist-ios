@@ -99,8 +99,12 @@ final class AuthViewModel {
         await login(username: username, password: password)
     }
 
-    func logout() {
-        apiClient.logout()
+    func logout() async {
+        do {
+            try await apiClient.logout()
+        } catch {
+            // Mesmo se o servidor falhar, limpa local e desloga
+        }
         keychainService.deleteToken()
         state = .signedOut
     }

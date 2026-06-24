@@ -51,8 +51,14 @@ final class APIClient {
         return response
     }
 
-    func logout() {
-        token = nil
+    func logout() async throws {
+        defer { self.token = nil }
+        let request = try makeRequest(
+            url: defaultBase.appendingPathComponent("/api/logout"),
+            method: "POST",
+            authenticated: true
+        )
+        try await performNoContent(request)
     }
 
     // MARK: - Listas e itens

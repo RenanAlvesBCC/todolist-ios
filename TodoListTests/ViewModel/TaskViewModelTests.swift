@@ -74,7 +74,7 @@ final class TaskViewModelTests: XCTestCase {
     func testLoadListsPopulatesTaskListsOnSuccess() async {
         let mock = MockTaskAPIClient()
         mock.fetchListsResult = .success(TaskListResponse(lists: [.stub(id: 1), .stub(id: 2)], page: 1, limit: 100, total: 2, totalPages: 1))
-        let viewModel = TaskViewModel(apiClient: mock)
+        let viewModel = TaskViewModel.makeForTesting(apiClient: mock)
 
         await viewModel.loadLists()
 
@@ -85,7 +85,7 @@ final class TaskViewModelTests: XCTestCase {
     func testLoadListsSetsErrorMessageOnFailure() async {
         let mock = MockTaskAPIClient()
         mock.fetchListsResult = .failure(APIError.notAuthenticated)
-        let viewModel = TaskViewModel(apiClient: mock)
+        let viewModel = TaskViewModel.makeForTesting(apiClient: mock)
 
         await viewModel.loadLists()
 
@@ -96,7 +96,7 @@ final class TaskViewModelTests: XCTestCase {
     func testAddListAppendsReturnedListToTaskLists() async {
         let mock = MockTaskAPIClient()
         mock.createListResult = .success(.stub(id: 9, title: "Nova lista"))
-        let viewModel = TaskViewModel(apiClient: mock)
+        let viewModel = TaskViewModel.makeForTesting(apiClient: mock)
 
         await viewModel.addList(title: "Nova lista")
 
@@ -106,7 +106,7 @@ final class TaskViewModelTests: XCTestCase {
 
     func testAddListWithBlankTitleDoesNotCallAPI() async {
         let mock = MockTaskAPIClient()
-        let viewModel = TaskViewModel(apiClient: mock)
+        let viewModel = TaskViewModel.makeForTesting(apiClient: mock)
 
         await viewModel.addList(title: "   ")
 
@@ -118,7 +118,7 @@ final class TaskViewModelTests: XCTestCase {
         let mock = MockTaskAPIClient()
         let list = TaskList.stub(id: 1)
         mock.fetchListsResult = .success(TaskListResponse(lists: [list], page: 1, limit: 100, total: 1, totalPages: 1))
-        let viewModel = TaskViewModel(apiClient: mock)
+        let viewModel = TaskViewModel.makeForTesting(apiClient: mock)
         await viewModel.loadLists()
 
         await viewModel.deleteList(list)
@@ -132,7 +132,7 @@ final class TaskViewModelTests: XCTestCase {
         let list = TaskList.stub(id: 1)
         mock.fetchListsResult = .success(TaskListResponse(lists: [list], page: 1, limit: 100, total: 1, totalPages: 1))
         mock.addItemResult = .success(.stub(id: 5, text: "Leite", taskListID: 1))
-        let viewModel = TaskViewModel(apiClient: mock)
+        let viewModel = TaskViewModel.makeForTesting(apiClient: mock)
         await viewModel.loadLists()
 
         await viewModel.addItem(text: "Leite", to: list)
@@ -147,7 +147,7 @@ final class TaskViewModelTests: XCTestCase {
         let list = TaskList.stub(id: 1, items: [item])
         mock.fetchListsResult = .success(TaskListResponse(lists: [list], page: 1, limit: 100, total: 1, totalPages: 1))
         mock.updateItemResult = .success(.stub(id: 5, completed: true, taskListID: 1))
-        let viewModel = TaskViewModel(apiClient: mock)
+        let viewModel = TaskViewModel.makeForTesting(apiClient: mock)
         await viewModel.loadLists()
 
         await viewModel.toggleCompleted(item, in: list)
@@ -161,7 +161,7 @@ final class TaskViewModelTests: XCTestCase {
         let item = TaskItem.stub(id: 5, taskListID: 1)
         let list = TaskList.stub(id: 1, items: [item])
         mock.fetchListsResult = .success(TaskListResponse(lists: [list], page: 1, limit: 100, total: 1, totalPages: 1))
-        let viewModel = TaskViewModel(apiClient: mock)
+        let viewModel = TaskViewModel.makeForTesting(apiClient: mock)
         await viewModel.loadLists()
 
         await viewModel.deleteItem(item, from: list)
@@ -177,7 +177,7 @@ final class TaskViewModelTests: XCTestCase {
         let list = TaskList.stub(id: 1, items: [item])
         mock.fetchListsResult = .success(TaskListResponse(lists: [list], page: 1, limit: 100, total: 1, totalPages: 1))
         mock.deleteItemError = APIError.server(message: "item não encontrado")
-        let viewModel = TaskViewModel(apiClient: mock)
+        let viewModel = TaskViewModel.makeForTesting(apiClient: mock)
         await viewModel.loadLists()
 
         await viewModel.deleteItem(item, from: list)
@@ -190,7 +190,7 @@ final class TaskViewModelTests: XCTestCase {
         let mock = MockTaskAPIClient()
         let list = TaskList.stub(id: 1, title: "Antigo título")
         mock.fetchListsResult = .success(TaskListResponse(lists: [list], page: 1, limit: 100, total: 1, totalPages: 1))
-        let viewModel = TaskViewModel(apiClient: mock)
+        let viewModel = TaskViewModel.makeForTesting(apiClient: mock)
         await viewModel.loadLists()
 
         await viewModel.renameList(list, title: "Novo título")

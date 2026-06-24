@@ -49,14 +49,19 @@ struct SettingsView: View {
                         .foregroundStyle(theme.textSecondary)
 
                     Button(role: .destructive) {
-                        authViewModel.logout()
-                        dismiss()
+                        Task {
+                            await authViewModel.logout()
+                            dismiss()
+                        }
                     } label: {
                         Text("settings.action.signout")
                             .fontWeight(.medium)
                             .frame(maxWidth: .infinity)
                             .padding(12)
                     }
+                    .background(theme.card)
+                    .foregroundStyle(Color.appDestructive)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
                     .background(theme.card)
                     .foregroundStyle(Color.appDestructive)
                     .clipShape(RoundedRectangle(cornerRadius: 10))

@@ -8,21 +8,23 @@
 import XCTest
 @testable import TodoList
 
-final class MockBiometricService: BiometricServiceProtocol {
-    var isAvailable = true
-    var authenticationResult: Result<Bool, Error> = .success(true)
-
-    func authenticate(reason: String) async throws -> Bool {
-        return try authenticationResult.get()
-    }
-}
-
 final class BiometricServiceTests: XCTestCase {
 
-    func testBiometricServiceIsAvailableReturnsValue() {
-        let service = BiometricService()
-        // Apenas confirma que a propriedade não trava — o valor depende do dispositivo
-        let _ = service.isAvailable
-        XCTAssertTrue(true)
+    func testMockBiometricServiceIsAvailableByDefault() {
+        let mock = MockBiometricService()
+        XCTAssertTrue(mock.isAvailable)
+    }
+
+    func testMockBiometricServiceAuthenticatesSuccessfully() async throws {
+        let mock = MockBiometricService()
+        let result = try await mock.authenticate(reason: "test")
+        XCTAssertTrue(result)
+    }
+
+    func testMockBiometricServiceCanSimulateFailure() async {
+        let mock = MockBiometricService()
+        mock.authenticationResult = .success(false)
+        let result = try? await mock.authenticate(reason: "test")
+        XCTAssertEqual(result, false)
     }
 }

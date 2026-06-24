@@ -15,7 +15,7 @@ final class TaskViewModelReorderTests: XCTestCase {
         let mock = MockTaskAPIClient()
         let lists = [TaskList.stub(id: 1, title: "A"), TaskList.stub(id: 2, title: "B"), TaskList.stub(id: 3, title: "C")]
         mock.fetchListsResult = .success(TaskListResponse(lists: lists, page: 1, limit: 100, total: 3, totalPages: 1))
-        let viewModel = TaskViewModel(apiClient: mock)
+        let viewModel = TaskViewModel.makeForTesting(apiClient: mock)
         await viewModel.loadLists()
 
         viewModel.moveLists(fromID: 1, toID: 3)
@@ -27,7 +27,7 @@ final class TaskViewModelReorderTests: XCTestCase {
         let mock = MockTaskAPIClient()
         let lists = [TaskList.stub(id: 2), TaskList.stub(id: 1)]
         mock.fetchListsResult = .success(TaskListResponse(lists: lists, page: 1, limit: 100, total: 2, totalPages: 1))
-        let viewModel = TaskViewModel(apiClient: mock)
+        let viewModel = TaskViewModel.makeForTesting(apiClient: mock)
         await viewModel.loadLists()
 
         await viewModel.persistListOrder()
@@ -40,7 +40,7 @@ final class TaskViewModelReorderTests: XCTestCase {
         let items = [TaskItem.stub(id: 10, taskListID: 1), TaskItem.stub(id: 11, taskListID: 1)]
         let list = TaskList.stub(id: 1, items: items)
         mock.fetchListsResult = .success(TaskListResponse(lists: [list], page: 1, limit: 100, total: 1, totalPages: 1))
-        let viewModel = TaskViewModel(apiClient: mock)
+        let viewModel = TaskViewModel.makeForTesting(apiClient: mock)
         await viewModel.loadLists()
 
         viewModel.moveItems(in: list, fromID: 10, toID: 11)
@@ -53,7 +53,7 @@ final class TaskViewModelReorderTests: XCTestCase {
         let items = [TaskItem.stub(id: 11, taskListID: 1), TaskItem.stub(id: 10, taskListID: 1)]
         let list = TaskList.stub(id: 1, items: items)
         mock.fetchListsResult = .success(TaskListResponse(lists: [list], page: 1, limit: 100, total: 1, totalPages: 1))
-        let viewModel = TaskViewModel(apiClient: mock)
+        let viewModel = TaskViewModel.makeForTesting(apiClient: mock)
         await viewModel.loadLists()
 
         await viewModel.persistItemOrder(for: list)

@@ -8,6 +8,7 @@
 import SwiftData
 import Foundation
 
+
 @MainActor
 final class CacheService: CacheServiceProtocol {
     private let modelContext: ModelContext
@@ -27,12 +28,12 @@ final class CacheService: CacheServiceProtocol {
     }
 
     func loadLists(userID: Int) -> [TaskList] {
-        var descriptor = FetchDescriptor<CachedTaskList>(
-            predicate: #Predicate { $0.userID == userID },
-            sortBy: [SortDescriptor(\.position)]
-        )
+        let descriptor = FetchDescriptor<CachedTaskList>()
         let cached = (try? modelContext.fetch(descriptor)) ?? []
-        return cached.map { $0.toTaskList() }
+        return cached
+            .filter { $0.userID == userID }
+            .sorted { $0.position < $1.position }
+            .map { $0.toTaskList() }
     }
 
     func upsertList(_ list: TaskList) {

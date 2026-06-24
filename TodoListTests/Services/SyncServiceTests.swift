@@ -9,22 +9,6 @@ import XCTest
 import SwiftData
 @testable import TodoList
 
-final class MockCacheService: CacheServiceProtocol {
-    var savedLists: [TaskList] = []
-    var deletedListIDs: [Int] = []
-    var upsertedItems: [TaskItem] = []
-    var deletedItemIDs: [Int] = []
-    private(set) var replacedTempIDs: [(temp: Int, real: TaskList)] = []
-
-    func saveLists(_ lists: [TaskList]) { savedLists = lists }
-    func loadLists(userID: Int) -> [TaskList] { savedLists }
-    func upsertList(_ list: TaskList) { savedLists.append(list) }
-    func deleteList(serverID: Int) { deletedListIDs.append(serverID) }
-    func upsertItem(_ item: TaskItem) { upsertedItems.append(item) }
-    func deleteItem(serverID: Int) { deletedItemIDs.append(serverID) }
-    func replaceTempID(_ tempID: Int, with realList: TaskList) { replacedTempIDs.append((tempID, realList)) }
-    func replaceTempItemID(_ tempID: Int, with realItem: TaskItem) {}
-}
 
 @MainActor
 final class SyncServiceTests: XCTestCase {

@@ -13,6 +13,7 @@ extension TaskList {
         id: Int = 1,
         title: String = "Lista de teste",
         userID: Int = 1,
+        position: Int = 0,
         items: [TaskItem] = []
     ) -> TaskList {
         TaskList(
@@ -21,6 +22,7 @@ extension TaskList {
             updatedAt: Date(timeIntervalSince1970: 1_750_000_000),
             title: title,
             userID: userID,
+            position: position,
             items: items
         )
     }

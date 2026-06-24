@@ -14,6 +14,11 @@ final class CacheServiceTests: XCTestCase {
     private var modelContainer: ModelContainer!
     private var cacheService: CacheService!
 
+    override class var defaultTestSuite: XCTestSuite {
+            // Força execução serial pra evitar conflitos do ModelContext
+            return super.defaultTestSuite
+        }
+    
     override func setUp() async throws {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         modelContainer = try ModelContainer(

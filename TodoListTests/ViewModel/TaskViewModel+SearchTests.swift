@@ -13,7 +13,7 @@ final class TaskViewModelSearchTests: XCTestCase {
 
     func testSearchTextEventuallyTriggersLoadWithSearchTerm() async throws {
         let mock = MockTaskAPIClient()
-        let viewModel = TaskViewModel(apiClient: mock)
+        let viewModel = TaskViewModel.makeForTesting(apiClient: mock)
 
         viewModel.searchText = "compras"
 
@@ -24,7 +24,7 @@ final class TaskViewModelSearchTests: XCTestCase {
 
     func testRapidTypingOnlySearchesFinalText() async throws {
         let mock = MockTaskAPIClient()
-        let viewModel = TaskViewModel(apiClient: mock)
+        let viewModel = TaskViewModel.makeForTesting(apiClient: mock)
 
         viewModel.searchText = "c"
         viewModel.searchText = "co"

@@ -25,4 +25,18 @@ struct TaskItem: Codable, Identifiable, Equatable, Hashable {
         case position
         case taskListID = "task_list_id"
     }
+
+}
+
+extension TaskItem {
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(Int.self, forKey: .id)
+        createdAt = try c.decode(Date.self, forKey: .createdAt)
+        updatedAt = try c.decode(Date.self, forKey: .updatedAt)
+        text = try c.decode(String.self, forKey: .text)
+        completed = try c.decode(Bool.self, forKey: .completed)
+        position = try c.decodeIfPresent(Int.self, forKey: .position) ?? 0
+        taskListID = try c.decode(Int.self, forKey: .taskListID)
+    }
 }

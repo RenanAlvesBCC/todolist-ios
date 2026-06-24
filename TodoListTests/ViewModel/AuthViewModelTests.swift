@@ -20,7 +20,7 @@ final class MockAuthAPIClient: AuthAPIClient {
         restoredToken = token
     }
 
-    func logout() {
+    func logout() async throws {
         logoutCallCount += 1
     }
 
@@ -87,7 +87,7 @@ final class AuthViewModelTests: XCTestCase {
         let viewModel = AuthViewModel(apiClient: mock)
         await viewModel.login(username: "renan", password: "senha123")
 
-        viewModel.logout()
+        await viewModel.logout()
 
         XCTAssertEqual(viewModel.state, .signedOut)
     }
@@ -182,7 +182,7 @@ final class AuthViewModelTests: XCTestCase {
 
         await viewModel.login(username: "renan", password: "senha123")
 
-        XCTAssertEqual(mockKeychain.savedToken, "eyJhbGciOiJIUzI1NiIs...")
+        XCTAssertEqual(mockKeychain.savedToken, "fake-token")
     }
 
     func testLogoutClearsKeychainAndSignsOut() async {
@@ -198,7 +198,7 @@ final class AuthViewModelTests: XCTestCase {
         )
         await viewModel.login(username: "renan", password: "senha123")
 
-        viewModel.logout()
+        await viewModel.logout()
 
         XCTAssertEqual(viewModel.state, .signedOut)
         XCTAssertNil(mockKeychain.savedToken)

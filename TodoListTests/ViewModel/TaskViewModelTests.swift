@@ -22,6 +22,8 @@ final class MockTaskAPIClient: TaskAPIClient {
     private(set) var lastDeleteItemInput: (listID: Int, itemID: Int)?
     private(set) var fetchListsCallCount = 0
     private(set) var lastFetchListsSearch: String?
+    private(set) var lastFetchMine: Bool?
+    private(set) var lastChangeStatus: (listID: Int, status: VehicleStatus)?
     private(set) var reorderListsIDs: [Int]?
     private(set) var reorderItemsInput: (listID: Int, ids: [Int])?
 
@@ -33,9 +35,10 @@ final class MockTaskAPIClient: TaskAPIClient {
         reorderItemsInput = (listID, ids)
     }
 
-    func fetchLists(search: String, page: Int, limit: Int) async throws -> TaskListResponse {
+    func fetchLists(search: String, page: Int, limit: Int, status: String?, mine: Bool) async throws -> TaskListResponse {
         fetchListsCallCount += 1
         lastFetchListsSearch = search
+        lastFetchMine = mine
         return try fetchListsResult.get()
     }
 
@@ -66,6 +69,20 @@ final class MockTaskAPIClient: TaskAPIClient {
         lastDeleteItemInput = (listID, itemID)
         if let deleteItemError { throw deleteItemError }
     }
+
+    func changeStatus(listID: Int, status: VehicleStatus) async throws {
+        lastChangeStatus = (listID, status)
+    }
+
+    func fetchQuotes(listID: Int) async throws -> [QuoteItem] { [] }
+    func addQuote(listID: Int, text: String) async throws -> QuoteItem {
+        QuoteItem(id: 1, taskListID: listID, submittedBy: 1, text: text, createdAt: Date())
+    }
+    func fetchFlags(listID: Int) async throws -> [PendingFlag] { [] }
+    func addFlag(listID: Int, flagType: String, note: String) async throws -> PendingFlag {
+        PendingFlag(id: 1, taskListID: listID, createdBy: 1, flagType: flagType, note: note, resolvedAt: nil, resolvedBy: nil, createdAt: Date())
+    }
+    func resolveFlag(listID: Int, flagID: Int) async throws {}
 }
 
 @MainActor
@@ -171,7 +188,7 @@ final class TaskViewModelTests: XCTestCase {
         XCTAssertEqual(mock.lastDeleteItemInput?.itemID, 5)
     }
 
-    func testDeleteItemFailureKeepsItemAndSetsErrorMessage() async {
+    func testDeleteItemFailureEnqueuesSyncWithoutErrorBanner() async {
         let mock = MockTaskAPIClient()
         let item = TaskItem.stub(id: 5, taskListID: 1)
         let list = TaskList.stub(id: 1, items: [item])
@@ -182,8 +199,9 @@ final class TaskViewModelTests: XCTestCase {
 
         await viewModel.deleteItem(item, from: list)
 
-        XCTAssertEqual(viewModel.taskLists.first?.items.count, 1)
-        XCTAssertEqual(viewModel.errorMessage, "item não encontrado")
+        XCTAssertTrue(viewModel.taskLists.first?.items.isEmpty ?? false)
+        XCTAssertTrue(viewModel.hasPendingSync)
+        XCTAssertNil(viewModel.errorMessage)
     }
     
     func testRenameListUpdatesTitleInTaskLists() async {
@@ -196,5 +214,27 @@ final class TaskViewModelTests: XCTestCase {
         await viewModel.renameList(list, title: "Novo título")
 
         XCTAssertEqual(viewModel.taskLists.first?.title, "Novo título")
+    }
+
+    func testLoadListsRequestsMechanicBoard() async {
+        let mock = MockTaskAPIClient()
+        let viewModel = TaskViewModel.makeForTesting(apiClient: mock)
+
+        await viewModel.loadLists()
+
+        XCTAssertEqual(mock.lastFetchMine, true)
+    }
+
+    func testChangeStatusUpdatesLocalVehicle() async {
+        let mock = MockTaskAPIClient()
+        let list = TaskList.stub(id: 1)
+        mock.fetchListsResult = .success(TaskListResponse(lists: [list], page: 1, limit: 100, total: 1, totalPages: 1))
+        let viewModel = TaskViewModel.makeForTesting(apiClient: mock)
+        await viewModel.loadLists()
+
+        await viewModel.changeStatus(list, to: .aguardandoPeca)
+
+        XCTAssertEqual(viewModel.taskLists.first?.status, .aguardandoPeca)
+        XCTAssertEqual(mock.lastChangeStatus?.status, .aguardandoPeca)
     }
 }

@@ -1,0 +1,12 @@
+---
+description: Boas práticas Swift — DI, localização, testes
+globs: "**/*.swift"
+alwaysApply: false
+---
+
+# Swift
+
+- Injete dependências no `App` (`TodoListApp`), não em singletons globais.
+- Texto de UI em `Localizable.xcstrings` (pt-BR + en). Vocabulário: veículo, serviço, esteira — nunca “lista/tarefa” para o usuário.
+- Tema via `Environment(\.appTheme)`.
+- Testes unitários com mocks dos protocolos, no target `TodoListTests`.

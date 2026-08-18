@@ -33,6 +33,12 @@ final class MockAuthAPIClient: AuthAPIClient {
         loginCallCount += 1
         return try loginResult.get()
     }
+
+    func fetchWorkspace() async throws -> Workspace {
+        Workspace(id: 1, name: "Oficina", description: "", ownerID: 1, role: .editor)
+    }
+
+    func acceptInvite(code: String) async throws {}
 }
 
 @MainActor

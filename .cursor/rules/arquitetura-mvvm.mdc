@@ -1,0 +1,19 @@
+---
+description: MVVM SwiftUI — View não chama API
+globs: "**/*.swift"
+alwaysApply: false
+---
+
+# MVVM
+
+```swift
+// ❌ View chama a API
+Button("Salvar") { Task { _ = try await APIClient().updateItem(...) } }
+
+// ✅ ViewModel + protocolo
+Button("Salvar") { Task { await viewModel.toggleCompleted(item) } }
+```
+
+- View não conhece `URLSession` nem `APIClient` concreto.
+- ViewModel: `@MainActor` + `@Observable`.
+- Rede/cache/sync só via protocolos (`TaskAPIClient`, `CacheServiceProtocol`, `SyncServiceProtocol`).

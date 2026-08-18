@@ -18,6 +18,7 @@ enum AuthState: Equatable {
 @Observable
 final class AuthViewModel {
     private(set) var state: AuthState = .signedOut
+    private(set) var workspace: Workspace?
     var isLoading = false
     var errorMessage: String?
 
@@ -49,6 +50,7 @@ final class AuthViewModel {
             let success = try await biometricService.authenticate(reason: L10n.Biometric.reason)
             if success {
                 apiClient.restoreToken(token)
+                workspace = try? await apiClient.fetchWorkspace()
                 state = .signedIn
             } else {
                 state = .signedOut
@@ -76,7 +78,7 @@ final class AuthViewModel {
         isLoading = false
     }
 
-    func login(username: String, password: String) async {
+    func login(username: String, password: String, inviteCode: String = "") async {
         guard validate(username: username, password: password) else { return }
 
         isLoading = true
@@ -85,6 +87,10 @@ final class AuthViewModel {
         do {
             let response = try await apiClient.login(username: username, password: password)
             try? keychainService.save(token: response.token)
+            if !inviteCode.trimmingCharacters(in: .whitespaces).isEmpty {
+                try await apiClient.acceptInvite(code: inviteCode.trimmingCharacters(in: .whitespaces))
+            }
+            workspace = try? await apiClient.fetchWorkspace()
             state = .signedIn
         } catch {
             errorMessage = message(for: error)
@@ -93,10 +99,10 @@ final class AuthViewModel {
         isLoading = false
     }
 
-    func registerAndLogin(username: String, password: String) async {
+    func registerAndLogin(username: String, password: String, inviteCode: String = "") async {
         await register(username: username, password: password)
         guard errorMessage == nil else { return }
-        await login(username: username, password: password)
+        await login(username: username, password: password, inviteCode: inviteCode)
     }
 
     func logout() async {
@@ -106,6 +112,7 @@ final class AuthViewModel {
             // Mesmo se o servidor falhar, limpa local e desloga
         }
         keychainService.deleteToken()
+        workspace = nil
         state = .signedOut
     }
 

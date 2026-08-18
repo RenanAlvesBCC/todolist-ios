@@ -73,7 +73,7 @@ final class APIClientTests: XCTestCase {
         let client = APIClient(session: mock)
 
         do {
-            _ = try await client.fetchLists(search: "", page: 1, limit: 20)
+            _ = try await client.fetchLists(search: "", page: 1, limit: 20, status: nil, mine: false)
             XCTFail("Era esperado um erro de autenticação")
         } catch APIError.notAuthenticated {
             // esperado
@@ -89,7 +89,7 @@ final class APIClientTests: XCTestCase {
 
         let client = APIClient(session: mock)
         _ = try await client.login(username: "renan", password: "senha123")
-        _ = try await client.fetchLists(search: "compras", page: 2, limit: 5)
+        _ = try await client.fetchLists(search: "compras", page: 2, limit: 5, status: nil, mine: true)
 
         let listRequest = mock.requests.last
         XCTAssertEqual(listRequest?.httpMethod, "GET")
@@ -98,6 +98,7 @@ final class APIClientTests: XCTestCase {
         let query = listRequest?.url.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false)?.queryItems }
         XCTAssertTrue(query?.contains(URLQueryItem(name: "search", value: "compras")) ?? false)
         XCTAssertTrue(query?.contains(URLQueryItem(name: "page", value: "2")) ?? false)
+        XCTAssertTrue(query?.contains(URLQueryItem(name: "mine", value: "true")) ?? false)
     }
 
     func testCreateListSendsPostAndReturnsDecodedList() async throws {

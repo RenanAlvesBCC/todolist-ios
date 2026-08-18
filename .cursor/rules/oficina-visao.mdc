@@ -1,0 +1,12 @@
+---
+description: Visão de produto — papéis gerente vs mecânico
+alwaysApply: true
+---
+
+# Visão da oficina
+
+- Gerente/dono usa a **web**: pátio inteiro, criar veículo, atribuir mecânicos, membros.
+- Mecânico usa o **app** (este repo): só a **esteira** (veículos atribuídos a ele).
+- Na API, `editor` = mecânico, `manager` = gerente, `owner` = dono.
+
+Não misture as duas visões neste app.

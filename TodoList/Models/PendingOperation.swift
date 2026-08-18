@@ -17,6 +17,9 @@ enum PendingOperationType: String, Codable {
     case deleteItem
     case reorderLists
     case reorderItems
+    case changeStatus
+    case createQuote
+    case createFlag
 }
 
 // Payloads — um por tipo de operação
@@ -28,6 +31,9 @@ struct UpdateItemPayload: Codable { let listID: Int; let itemID: Int; let text: 
 struct DeleteItemPayload: Codable { let listID: Int; let itemID: Int }
 struct ReorderListsPayload: Codable { let ids: [Int] }
 struct ReorderItemsPayload: Codable { let listID: Int; let ids: [Int] }
+struct ChangeStatusPayload: Codable { let listID: Int; let status: String }
+struct CreateQuotePayload: Codable { let listID: Int; let text: String }
+struct CreateFlagPayload: Codable { let listID: Int; let flagType: String; let note: String }
 
 @Model
 final class PendingOperation {

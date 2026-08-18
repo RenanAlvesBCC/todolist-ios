@@ -14,34 +14,35 @@ enum KeychainError: Error, Equatable {
 }
 
 final class KeychainService: KeychainServiceProtocol {
-    private let service = "com.renanalvesbcc.todolist"
+    private let service = "com.renanalvesbcc.oficina.mecanico"
     private let tokenKey = "auth_token"
 
-    func save(token: String) throws {
-        let data = Data(token.utf8)
-        let query: [String: Any] = [
+    private var lookupQuery: [String: Any] {
+        [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: tokenKey,
-            kSecValueData as String: data
+            kSecAttrAccount as String: tokenKey
         ]
+    }
 
-        // Apaga a entrada anterior se existir, antes de salvar
-        SecItemDelete(query as CFDictionary)
-        let status = SecItemAdd(query as CFDictionary, nil)
+    func save(token: String) throws {
+        deleteToken()
+
+        let data = Data(token.utf8)
+        var addQuery = lookupQuery
+        addQuery[kSecValueData as String] = data
+        addQuery[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+
+        let status = SecItemAdd(addQuery as CFDictionary, nil)
         guard status == errSecSuccess else {
             throw KeychainError.saveFailed(status)
         }
     }
 
     func loadToken() throws -> String {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: tokenKey,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
+        var query = lookupQuery
+        query[kSecReturnData as String] = true
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
 
         var result: AnyObject?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
@@ -54,11 +55,6 @@ final class KeychainService: KeychainServiceProtocol {
     }
 
     func deleteToken() {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: tokenKey
-        ]
-        SecItemDelete(query as CFDictionary)
+        SecItemDelete(lookupQuery as CFDictionary)
     }
 }

@@ -31,7 +31,6 @@ final class CacheService: CacheServiceProtocol {
         let descriptor = FetchDescriptor<CachedTaskList>()
         let cached = (try? modelContext.fetch(descriptor)) ?? []
         return cached
-            .filter { $0.userID == userID }
             .sorted { $0.position < $1.position }
             .map { $0.toTaskList() }
     }
@@ -40,6 +39,7 @@ final class CacheService: CacheServiceProtocol {
         if let existing = findList(serverID: list.id) {
             existing.title = list.title
             existing.position = list.position
+            existing.status = list.status.rawValue
             existing.syncedAt = Date()
             // Atualiza os itens
             list.items.forEach { item in
@@ -59,7 +59,8 @@ final class CacheService: CacheServiceProtocol {
         } else {
             let cached = CachedTaskList(
                 serverID: list.id, title: list.title,
-                userID: list.userID, position: list.position
+                userID: list.userID, position: list.position,
+                status: list.status.rawValue
             )
             modelContext.insert(cached)
             list.items.forEach { item in

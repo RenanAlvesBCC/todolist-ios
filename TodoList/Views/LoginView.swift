@@ -13,6 +13,7 @@ struct LoginView: View {
     @Environment(\.appTheme) private var theme
     @State private var username = ""
     @State private var password = ""
+    @State private var inviteCode = ""
     @State private var isRegisterMode = false
 
     var body: some View {
@@ -24,12 +25,12 @@ struct LoginView: View {
                     .fill(theme.text)
                     .frame(width: 64, height: 64)
                     .overlay {
-                        Image(systemName: "checklist")
+                        Image(systemName: "wrench.and.screwdriver")
                             .font(.system(size: 28, weight: .medium))
                             .foregroundStyle(theme.background)
                     }
 
-                Text("To-do list")
+                Text("app.title")
                     .font(.system(size: 22, weight: .bold, design: .rounded))
                     .foregroundStyle(theme.text)
 
@@ -48,6 +49,14 @@ struct LoginView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
 
                 SecureField("auth.placeholder.password", text: $password)
+                    .padding(14)
+                    .background(theme.card)
+                    .foregroundStyle(theme.text)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                TextField("auth.placeholder.invite", text: $inviteCode)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
                     .padding(14)
                     .background(theme.card)
                     .foregroundStyle(theme.text)
@@ -100,9 +109,9 @@ struct LoginView: View {
 
     private func submit() async {
         if isRegisterMode {
-            await viewModel.registerAndLogin(username: username, password: password)
+            await viewModel.registerAndLogin(username: username, password: password, inviteCode: inviteCode)
         } else {
-            await viewModel.login(username: username, password: password)
+            await viewModel.login(username: username, password: password, inviteCode: inviteCode)
         }
     }
 }

@@ -1,0 +1,11 @@
+---
+description: Contrato HTTP compartilhado — lists = veículos
+alwaysApply: true
+---
+
+# Contrato HTTP
+
+- Paths atuais: `/api/lists` são **veículos**; `items` são **serviços**.
+- Não renomeie paths neste ciclo. Mudança de contrato exige API + iOS + Android + web juntos.
+- Board do mecânico: `GET /api/lists?mine=true` (editor já é filtrado no servidor).
+- Não invente query params nem campos JSON.

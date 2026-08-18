@@ -48,6 +48,12 @@ struct SettingsView: View {
                         .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(theme.textSecondary)
 
+                    if let role = authViewModel.workspace?.role {
+                        Text(role.displayName)
+                            .font(.subheadline)
+                            .foregroundStyle(theme.text)
+                    }
+
                     Button(role: .destructive) {
                         Task {
                             await authViewModel.logout()

@@ -16,6 +16,8 @@ final class TaskViewModel {
     var isLoading = false
     var errorMessage: String?
     private(set) var hasPendingSync = false
+    private(set) var quotesByList: [Int: [QuoteItem]] = [:]
+    private(set) var flagsByList: [Int: [PendingFlag]] = [:]
 
     private let apiClient: TaskAPIClient
     private let cacheService: CacheServiceProtocol
@@ -56,7 +58,9 @@ final class TaskViewModel {
 
         // 2. Busca do servidor em background
         do {
-            let response = try await apiClient.fetchLists(search: searchText, page: 1, limit: 100)
+            let response = try await apiClient.fetchLists(
+                search: searchText, page: 1, limit: 100, status: nil, mine: true
+            )
             taskLists = response.lists
             currentUserID = response.lists.first?.userID ?? currentUserID
             cacheService.saveLists(response.lists)
@@ -304,6 +308,99 @@ final class TaskViewModel {
                 payload: ReorderItemsPayload(listID: list.id, ids: current.items.map(\.id))
             ))
             hasPendingSync = true
+        }
+    }
+
+    var vehiclesByStatus: [(status: VehicleStatus, vehicles: [TaskList])] {
+        VehicleStatus.allCases.compactMap { status in
+            let items = taskLists.filter { $0.status == status }
+            return items.isEmpty ? nil : (status, items)
+        }
+    }
+
+    func changeStatus(_ list: TaskList, to status: VehicleStatus) async {
+        errorMessage = nil
+        if let index = taskLists.firstIndex(where: { $0.id == list.id }) {
+            taskLists[index].status = status
+        }
+        var updated = list
+        updated.status = status
+        cacheService.upsertList(updated)
+
+        guard list.id > 0 else { return }
+
+        do {
+            try await apiClient.changeStatus(listID: list.id, status: status)
+        } catch {
+            syncService.enqueue(PendingOperation(
+                type: .changeStatus,
+                payload: ChangeStatusPayload(listID: list.id, status: status.rawValue)
+            ))
+            hasPendingSync = true
+            errorMessage = message(for: error)
+        }
+    }
+
+    func loadVehicleExtras(for list: TaskList) async {
+        guard list.id > 0 else { return }
+        do {
+            async let quotes = apiClient.fetchQuotes(listID: list.id)
+            async let flags = apiClient.fetchFlags(listID: list.id)
+            quotesByList[list.id] = try await quotes
+            flagsByList[list.id] = try await flags
+        } catch {
+            errorMessage = message(for: error)
+        }
+    }
+
+    func addQuote(text: String, to list: TaskList) async {
+        let trimmed = text.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else { return }
+        do {
+            let created = try await apiClient.addQuote(listID: list.id, text: trimmed)
+            quotesByList[list.id, default: []].append(created)
+        } catch {
+            syncService.enqueue(PendingOperation(
+                type: .createQuote,
+                payload: CreateQuotePayload(listID: list.id, text: trimmed)
+            ))
+            hasPendingSync = true
+            errorMessage = message(for: error)
+        }
+    }
+
+    func addFlag(type: String, note: String, to list: TaskList) async {
+        do {
+            let created = try await apiClient.addFlag(listID: list.id, flagType: type, note: note)
+            flagsByList[list.id, default: []].append(created)
+        } catch {
+            syncService.enqueue(PendingOperation(
+                type: .createFlag,
+                payload: CreateFlagPayload(listID: list.id, flagType: type, note: note)
+            ))
+            hasPendingSync = true
+            errorMessage = message(for: error)
+        }
+    }
+
+    func resolveFlag(_ flag: PendingFlag, in list: TaskList) async {
+        do {
+            try await apiClient.resolveFlag(listID: list.id, flagID: flag.id)
+            flagsByList[list.id] = flagsByList[list.id]?.map { item in
+                guard item.id == flag.id else { return item }
+                return PendingFlag(
+                    id: item.id,
+                    taskListID: item.taskListID,
+                    createdBy: item.createdBy,
+                    flagType: item.flagType,
+                    note: item.note,
+                    resolvedAt: Date(),
+                    resolvedBy: item.resolvedBy,
+                    createdAt: item.createdAt
+                )
+            }
+        } catch {
+            errorMessage = message(for: error)
         }
     }
 

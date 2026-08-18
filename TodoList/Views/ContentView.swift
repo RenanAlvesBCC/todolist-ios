@@ -19,7 +19,7 @@ struct ContentView: View {
         case .authenticating:
             BiometricAuthView()
         case .signedIn:
-            TaskGridView(authViewModel: authViewModel, taskViewModel: taskViewModel)
+            MechanicBoardView(authViewModel: authViewModel, taskViewModel: taskViewModel)
         }
     }
 }

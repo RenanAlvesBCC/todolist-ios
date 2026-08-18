@@ -63,12 +63,18 @@ final class APIClient {
 
     // MARK: - Listas e itens
 
-    func fetchLists(search: String, page: Int, limit: Int) async throws -> TaskListResponse {
+    func fetchLists(search: String, page: Int, limit: Int, status: String?, mine: Bool) async throws -> TaskListResponse {
         var components = URLComponents(url: defaultBase.appendingPathComponent("/api/lists"), resolvingAgainstBaseURL: false)!
         var queryItems = [
             URLQueryItem(name: "page", value: String(page)),
             URLQueryItem(name: "limit", value: String(limit))
         ]
+        if mine {
+            queryItems.append(URLQueryItem(name: "mine", value: "true"))
+        }
+        if let status, !status.isEmpty {
+            queryItems.append(URLQueryItem(name: "status", value: status))
+        }
         if !search.isEmpty {
             queryItems.append(URLQueryItem(name: "search", value: search))
         }
@@ -110,6 +116,73 @@ final class APIClient {
 
     func reorderItems(listID: Int, ids: [Int]) async throws {
         try await sendNoContent(method: "PUT", path: "/api/lists/\(listID)/items/reorder", body: ReorderInput(ids: ids), authenticated: true)
+    }
+
+    func changeStatus(listID: Int, status: VehicleStatus) async throws {
+        try await sendNoContent(
+            method: "PUT",
+            path: "/api/lists/\(listID)/status",
+            body: ChangeStatusInput(status: status.rawValue),
+            authenticated: true
+        )
+    }
+
+    func fetchQuotes(listID: Int) async throws -> [QuoteItem] {
+        let request = try makeRequest(
+            url: defaultBase.appendingPathComponent("/api/lists/\(listID)/quotes"),
+            method: "GET",
+            authenticated: true
+        )
+        return try await perform(request)
+    }
+
+    func addQuote(listID: Int, text: String) async throws -> QuoteItem {
+        try await send(method: "POST", path: "/api/lists/\(listID)/quotes", body: CreateQuoteInput(text: text), authenticated: true)
+    }
+
+    func fetchFlags(listID: Int) async throws -> [PendingFlag] {
+        let request = try makeRequest(
+            url: defaultBase.appendingPathComponent("/api/lists/\(listID)/flags"),
+            method: "GET",
+            authenticated: true
+        )
+        return try await perform(request)
+    }
+
+    func addFlag(listID: Int, flagType: String, note: String) async throws -> PendingFlag {
+        try await send(
+            method: "POST",
+            path: "/api/lists/\(listID)/flags",
+            body: CreateFlagInput(flagType: flagType, note: note),
+            authenticated: true
+        )
+    }
+
+    func resolveFlag(listID: Int, flagID: Int) async throws {
+        let request = try makeRequest(
+            url: defaultBase.appendingPathComponent("/api/lists/\(listID)/flags/\(flagID)/resolve"),
+            method: "PATCH",
+            authenticated: true
+        )
+        try await performNoContent(request)
+    }
+
+    func fetchWorkspace() async throws -> Workspace {
+        let request = try makeRequest(
+            url: defaultBase.appendingPathComponent("/api/workspace"),
+            method: "GET",
+            authenticated: true
+        )
+        return try await perform(request)
+    }
+
+    func acceptInvite(code: String) async throws {
+        let request = try makeRequest(
+            url: defaultBase.appendingPathComponent("/api/invites/\(code)/accept"),
+            method: "POST",
+            authenticated: true
+        )
+        try await performNoContent(request)
     }
 
     // MARK: - Núcleo privado

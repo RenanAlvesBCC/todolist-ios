@@ -1,0 +1,41 @@
+---
+description: Commits pequenos com build, testes e cobertura ≥90%
+alwaysApply: true
+---
+
+# Commits incrementais e qualidade
+
+## Tamanho do commit
+
+- **Um commit = uma mudança lógica** (bugfix, endpoint, tela, refactor localizado).
+- Evite commits misturando API + iOS + web no mesmo repo.
+- Se o incremento exige vários passos, **vários commits pequenos**, cada um verde.
+
+## Gate obrigatório antes de commit
+
+Rode `./scripts/verify.sh` e só commite se passar:
+
+1. **Build** compila sem erro.
+2. **Testes unitários** passam (não UI tests).
+3. **Cobertura ≥ 90%** no escopo definido em `docs/QUALIDADE.md`.
+
+Se `./scripts/verify.sh` falhar, **corrija no mesmo incremento** (código ou testes) antes de commitar.
+
+## Cobertura
+
+- Medida só no **escopo testável** (ViewModels, services, handlers…) — ver `docs/QUALIDADE.md`.
+- Código novo **sem teste** no escopo: proibido commitar.
+- Refactor que derruba cobertura: adicione testes no mesmo commit.
+
+## Fluxo do agente
+
+```
+implementar → ./scripts/verify.sh → commit pequeno → repetir
+```
+
+Não commite em lote no fim de um incremento grande sem verificar cada passo intermediário quando possível.
+
+## Exceções
+
+- Apenas docs/markdown sem código: build/testes não se aplicam; mencione no commit.
+- Mudança de contrato cruzado: commit na API primeiro, depois clientes — cada repo com seu `./scripts/verify.sh`.

@@ -31,32 +31,37 @@ final class MockKeychainService: KeychainServiceProtocol {
 
 final class KeychainServiceTests: XCTestCase {
 
-    func testSaveAndLoadToken() throws {
-        let service = KeychainService()
-        defer { service.deleteToken() }
+    private var service: KeychainService!
 
+    override func setUp() {
+        super.setUp()
+        service = KeychainService()
+        service.deleteToken()
+    }
+
+    override func tearDown() {
+        service.deleteToken()
+        service = nil
+        super.tearDown()
+    }
+
+    func testSaveAndLoadToken() async throws {
         try service.save(token: "test-token-123")
         let loaded = try service.loadToken()
         XCTAssertEqual(loaded, "test-token-123")
     }
 
-    func testLoadThrowsWhenNoTokenSaved() {
-        let service = KeychainService()
-        service.deleteToken()
+    func testLoadThrowsWhenNoTokenSaved() async {
         XCTAssertThrowsError(try service.loadToken())
     }
 
-    func testDeleteRemovesToken() throws {
-        let service = KeychainService()
+    func testDeleteRemovesToken() async throws {
         try service.save(token: "token-to-delete")
         service.deleteToken()
         XCTAssertThrowsError(try service.loadToken())
     }
 
-    func testSaveOverwritesPreviousToken() throws {
-        let service = KeychainService()
-        defer { service.deleteToken() }
-
+    func testSaveOverwritesPreviousToken() async throws {
         try service.save(token: "primeiro")
         try service.save(token: "segundo")
         let loaded = try service.loadToken()

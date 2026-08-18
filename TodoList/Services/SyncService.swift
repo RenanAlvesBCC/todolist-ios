@@ -95,6 +95,19 @@ final class SyncService: SyncServiceProtocol {
             case .reorderItems:
                 guard let payload = operation.decoded(as: ReorderItemsPayload.self) else { return true }
                 try await apiClient.reorderItems(listID: payload.listID, ids: payload.ids)
+
+            case .changeStatus:
+                guard let payload = operation.decoded(as: ChangeStatusPayload.self),
+                      let status = VehicleStatus(rawValue: payload.status) else { return true }
+                try await apiClient.changeStatus(listID: payload.listID, status: status)
+
+            case .createQuote:
+                guard let payload = operation.decoded(as: CreateQuotePayload.self) else { return true }
+                _ = try await apiClient.addQuote(listID: payload.listID, text: payload.text)
+
+            case .createFlag:
+                guard let payload = operation.decoded(as: CreateFlagPayload.self) else { return true }
+                _ = try await apiClient.addFlag(listID: payload.listID, flagType: payload.flagType, note: payload.note)
             }
             return true
         } catch {

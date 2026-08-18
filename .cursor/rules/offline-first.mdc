@@ -1,0 +1,13 @@
+---
+description: Offline-first — fila só para operações do mecânico
+globs: "**/*.swift"
+alwaysApply: false
+---
+
+# Offline-first
+
+Mutações do mecânico: atualiza cache, enfileira `PendingOperation`, tenta a API; retry ao voltar ao foreground.
+
+Não enfileirar o que o papel não pode: criar/excluir veículo, reorder de pátio, assign de mecânicos.
+
+Retry máximo já existe na fila (5). Não invente outro mecanismo paralelo.

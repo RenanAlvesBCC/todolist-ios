@@ -8,16 +8,21 @@
 import SwiftUI
 
 enum AppTheme: String, CaseIterable, Identifiable {
-    case branco, preto, bege, azul, cinza
+    case sistema, branco, preto, bege, azul, cinza
 
     var id: String { rawValue }
 
-    var colorScheme: ColorScheme {
-        self == .preto ? .dark : .light
+    var colorScheme: ColorScheme? {
+        switch self {
+        case .sistema: return nil
+        case .preto: return .dark
+        default: return .light
+        }
     }
     
     var background: Color {
         switch self {
+        case .sistema: return Color(uiColor: .systemBackground)
         case .branco: return Color(hex: 0xFFFFFF)
         case .preto: return Color(hex: 0x161616)
         case .bege: return Color(hex: 0xF5F0E6)
@@ -28,6 +33,7 @@ enum AppTheme: String, CaseIterable, Identifiable {
 
     var card: Color {
         switch self {
+        case .sistema: return Color(uiColor: .secondarySystemBackground)
         case .branco: return Color(hex: 0xF7F6F3)
         case .preto: return Color(hex: 0x262626)
         case .bege, .azul, .cinza: return Color(hex: 0xFFFFFF)
@@ -36,6 +42,7 @@ enum AppTheme: String, CaseIterable, Identifiable {
 
     var text: Color {
         switch self {
+        case .sistema: return Color(uiColor: .label)
         case .branco: return Color(hex: 0x1C1C1E)
         case .preto: return Color(hex: 0xF5F5F5)
         case .bege: return Color(hex: 0x3A3530)
@@ -46,6 +53,7 @@ enum AppTheme: String, CaseIterable, Identifiable {
 
     var textSecondary: Color {
         switch self {
+        case .sistema: return Color(uiColor: .secondaryLabel)
         case .branco: return Color(hex: 0x6B6B6B)
         case .preto: return Color(hex: 0xA0A0A0)
         case .bege: return Color(hex: 0x8A8276)
@@ -56,6 +64,7 @@ enum AppTheme: String, CaseIterable, Identifiable {
 
     var accent: Color {
         switch self {
+        case .sistema: return Color(uiColor: .label)
         case .branco: return Color(hex: 0x1C1C1E)
         case .preto: return Color(hex: 0xF5F5F5)
         case .bege: return Color(hex: 0x8A6D3B)
@@ -66,6 +75,7 @@ enum AppTheme: String, CaseIterable, Identifiable {
 
     var swatchPreview: Color {
         switch self {
+        case .sistema: return Color(uiColor: .systemGray)
         case .branco: return Color(hex: 0xFFFFFF)
         case .preto: return Color(hex: 0x1C1C1E)
         case .bege: return Color(hex: 0xEDE2CF)

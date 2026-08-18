@@ -38,15 +38,14 @@ final class SyncService: SyncServiceProtocol {
               !operations.isEmpty else { return }
 
         for operation in operations {
+            if operation.retryCount >= 5 {
+                continue
+            }
             let success = await process(operation)
             if success {
                 modelContext.delete(operation)
             } else {
                 operation.retryCount += 1
-                // Remove da fila após 5 tentativas — evita retry infinito de operações inválidas
-                if operation.retryCount >= 5 {
-                    modelContext.delete(operation)
-                }
             }
         }
         try? modelContext.save()

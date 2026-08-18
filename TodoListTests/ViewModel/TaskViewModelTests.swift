@@ -15,6 +15,15 @@ final class MockTaskAPIClient: TaskAPIClient {
     var addItemResult: Result<TaskItem, Error> = .success(.stub())
     var updateItemResult: Result<TaskItem, Error> = .success(.stub())
     var deleteItemError: Error?
+    var changeStatusError: Error?
+    var updateListError: Error?
+    var reorderListsError: Error?
+    var reorderItemsError: Error?
+    var fetchQuotesResult: Result<[QuoteItem], Error> = .success([])
+    var addQuoteError: Error?
+    var fetchFlagsResult: Result<[PendingFlag], Error> = .success([])
+    var addFlagError: Error?
+    var resolveFlagError: Error?
 
     private(set) var createListCallCount = 0
     private(set) var lastDeletedListID: Int?
@@ -26,13 +35,20 @@ final class MockTaskAPIClient: TaskAPIClient {
     private(set) var lastChangeStatus: (listID: Int, status: VehicleStatus)?
     private(set) var reorderListsIDs: [Int]?
     private(set) var reorderItemsInput: (listID: Int, ids: [Int])?
+    private(set) var lastAddQuote: (listID: Int, text: String)?
+    private(set) var lastAddFlag: (listID: Int, flagType: String, note: String)?
+    private(set) var lastResolveFlag: (listID: Int, flagID: Int)?
+    private(set) var lastUpdateList: (id: Int, title: String)?
+    private(set) var lastAddItem: (listID: Int, text: String)?
 
     func reorderLists(ids: [Int]) async throws {
         reorderListsIDs = ids
+        if let reorderListsError { throw reorderListsError }
     }
 
     func reorderItems(listID: Int, ids: [Int]) async throws {
         reorderItemsInput = (listID, ids)
+        if let reorderItemsError { throw reorderItemsError }
     }
 
     func fetchLists(search: String, page: Int, limit: Int, status: String?, mine: Bool) async throws -> TaskListResponse {
@@ -48,7 +64,9 @@ final class MockTaskAPIClient: TaskAPIClient {
     }
 
     func updateList(id: Int, title: String) async throws -> TaskList {
-        .stub(id: id, title: title)
+        lastUpdateList = (id, title)
+        if let updateListError { throw updateListError }
+        return .stub(id: id, title: title)
     }
 
     func deleteList(id: Int) async throws {
@@ -57,7 +75,8 @@ final class MockTaskAPIClient: TaskAPIClient {
     }
 
     func addItem(listID: Int, text: String) async throws -> TaskItem {
-        try addItemResult.get()
+        lastAddItem = (listID, text)
+        return try addItemResult.get()
     }
 
     func updateItem(listID: Int, itemID: Int, text: String, completed: Bool) async throws -> TaskItem {
@@ -72,17 +91,29 @@ final class MockTaskAPIClient: TaskAPIClient {
 
     func changeStatus(listID: Int, status: VehicleStatus) async throws {
         lastChangeStatus = (listID, status)
+        if let changeStatusError { throw changeStatusError }
     }
 
-    func fetchQuotes(listID: Int) async throws -> [QuoteItem] { [] }
+    func fetchQuotes(listID: Int) async throws -> [QuoteItem] {
+        try fetchQuotesResult.get()
+    }
     func addQuote(listID: Int, text: String) async throws -> QuoteItem {
-        QuoteItem(id: 1, taskListID: listID, submittedBy: 1, text: text, createdAt: Date())
+        lastAddQuote = (listID, text)
+        if let addQuoteError { throw addQuoteError }
+        return QuoteItem(id: 1, taskListID: listID, submittedBy: 1, text: text, createdAt: Date())
     }
-    func fetchFlags(listID: Int) async throws -> [PendingFlag] { [] }
+    func fetchFlags(listID: Int) async throws -> [PendingFlag] {
+        try fetchFlagsResult.get()
+    }
     func addFlag(listID: Int, flagType: String, note: String) async throws -> PendingFlag {
-        PendingFlag(id: 1, taskListID: listID, createdBy: 1, flagType: flagType, note: note, resolvedAt: nil, resolvedBy: nil, createdAt: Date())
+        lastAddFlag = (listID, flagType, note)
+        if let addFlagError { throw addFlagError }
+        return PendingFlag(id: 1, taskListID: listID, createdBy: 1, flagType: flagType, note: note, resolvedAt: nil, resolvedBy: nil, createdAt: Date())
     }
-    func resolveFlag(listID: Int, flagID: Int) async throws {}
+    func resolveFlag(listID: Int, flagID: Int) async throws {
+        lastResolveFlag = (listID, flagID)
+        if let resolveFlagError { throw resolveFlagError }
+    }
 }
 
 @MainActor

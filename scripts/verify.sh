@@ -7,7 +7,13 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 SCHEME="${XCODE_SCHEME:-TodoList}"
-DESTINATION="${XCODE_DESTINATION:-platform=iOS Simulator,name=iPhone 17}"
+if [[ -n "${XCODE_DESTINATION:-}" ]]; then
+  DESTINATION="$XCODE_DESTINATION"
+elif xcrun simctl list devices available 2>/dev/null | grep -q "iPhone 17"; then
+  DESTINATION="platform=iOS Simulator,name=iPhone 17"
+else
+  DESTINATION="platform=iOS Simulator,name=iPhone 16"
+fi
 RESULT_BUNDLE="$ROOT/build/TestResults.xcresult"
 
 echo "▶ xcodebuild build"

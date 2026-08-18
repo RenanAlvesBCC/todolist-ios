@@ -130,10 +130,10 @@ struct VehicleDetailView: View {
                     }
                     HStack {
                         Picker("vehicle.placeholder.flag", selection: $selectedFlag) {
-                            Text("Procurando peça").tag("procurando_peca")
-                            Text("Aguardando cliente").tag("aguardando_cliente")
-                            Text("Aguardando orçamento").tag("aguardando_orcamento")
-                            Text("Aguardando peça").tag("aguardando_peca")
+                            Text("flag.procurando_peca").tag("procurando_peca")
+                            Text("flag.aguardando_cliente").tag("aguardando_cliente")
+                            Text("flag.aguardando_orcamento").tag("aguardando_orcamento")
+                            Text("flag.aguardando_peca").tag("aguardando_peca")
                         }
                         Button("common.action.create") {
                             Task { await taskViewModel.addFlag(type: selectedFlag, note: "", to: current) }

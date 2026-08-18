@@ -12,11 +12,17 @@ struct MechanicBoardView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 if let errorMessage = taskViewModel.errorMessage {
-                    Text(errorMessage)
-                        .font(.footnote)
-                        .foregroundStyle(.red)
-                        .padding(.horizontal)
-                        .padding(.top, 8)
+                    VStack(spacing: 8) {
+                        Text(errorMessage)
+                            .font(.footnote)
+                            .foregroundStyle(.red)
+                        Button("board.action.retry") {
+                            Task { await taskViewModel.loadLists() }
+                        }
+                        .font(.footnote.weight(.semibold))
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 8)
                 }
 
                 if taskViewModel.isLoading && taskViewModel.taskLists.isEmpty {
@@ -75,9 +81,13 @@ struct MechanicBoardView: View {
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     if taskViewModel.hasPendingSync {
-                        Image(systemName: "arrow.triangle.2.circlepath")
-                            .foregroundStyle(theme.textSecondary)
-                            .symbolEffect(.rotate, isActive: true)
+                        HStack(spacing: 4) {
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                                .symbolEffect(.rotate, isActive: true)
+                            Text("board.sync.pending")
+                                .font(.caption)
+                        }
+                        .foregroundStyle(theme.textSecondary)
                     }
                 }
             }
@@ -107,7 +117,9 @@ private struct VehicleCard: View {
             Text(vehicle.title)
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(theme.text)
-            Text("\(vehicle.items.filter(\.completed).count)/\(vehicle.items.count) serviços")
+            let completed = vehicle.items.filter(\.completed).count
+            let total = vehicle.items.count
+            Text("vehicle.services.count \(completed) \(total)")
                 .font(.caption)
                 .foregroundStyle(theme.textSecondary)
         }

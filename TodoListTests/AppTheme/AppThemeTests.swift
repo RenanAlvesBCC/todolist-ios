@@ -11,8 +11,9 @@ import SwiftUI
 
 final class AppThemeTests: XCTestCase {
 
-    func testHasFiveThemes() {
-        XCTAssertEqual(AppTheme.allCases.count, 5)
+    func testHasSixThemesIncludingSistema() {
+        XCTAssertEqual(AppTheme.allCases.count, 6)
+        XCTAssertTrue(AppTheme.allCases.contains(.sistema))
     }
 
     func testIdMatchesRawValue() {
@@ -32,6 +33,10 @@ final class AppThemeTests: XCTestCase {
         XCTAssertEqual(darkThemes, [.preto])
     }
 
+    func testSistemaColorSchemeFollowsSystem() {
+        XCTAssertNil(AppTheme.sistema.colorScheme)
+    }
+
     func testAllThemesHaveNonNilColors() {
         for theme in AppTheme.allCases {
             // Garante que nenhuma propriedade de cor retorna uma cor inválida
@@ -44,12 +49,11 @@ final class AppThemeTests: XCTestCase {
             _ = theme.swatchPreview
         }
         // Se chegou aqui sem crash, todos os switches estão cobertos
-        XCTAssertEqual(AppTheme.allCases.count, 5)
+        XCTAssertEqual(AppTheme.allCases.count, 6)
     }
 
     func testEachThemeHasUniqueSwatchPreview() {
         let swatches = AppTheme.allCases.map(\.swatchPreview)
-        // Converte pra descrição e verifica unicidade
-        XCTAssertEqual(swatches.count, 5)
+        XCTAssertEqual(swatches.count, 6)
     }
 }
